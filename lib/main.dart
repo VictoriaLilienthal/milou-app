@@ -1,10 +1,21 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:flutter/gestures.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+const bool USE_EMULATOR = true;
 
 List<Tuple2<bool, int>> fromJsonToTupleList(String json) {
   Iterable iterable = jsonDecode(json);
+
   List newList = iterable.toList();
 
   final newTuples = newList
@@ -53,7 +64,48 @@ class RowState {
 
 final prefs = SharedPreferences.getInstance();
 
+void login() async {
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  if (USE_EMULATOR) {
+    await FirebaseAuth.instance.useEmulator('http://localhost:9099');
+  }
+  //
+  try {
+    await FirebaseAuth.instance.signInAnonymously().then((value) => {print(value)});
+  } on FirebaseAuthException catch (e) {
+    print(e);
+  }
+
+  // await FirebaseAuth.instance.verifyPhoneNumber(
+  //   phoneNumber: '+16463844693',
+  //   verificationCompleted: (PhoneAuthCredential credential) {
+  //     print(1);
+  //   },
+  //   verificationFailed: (FirebaseAuthException e) {
+  //     print(e);
+  //   },
+  //   codeSent: (String verificationId, int? resendToken) {
+  //     PhoneAuthCredential credential = PhoneAuthProvider.credential(
+  //         verificationId: verificationId, smsCode: "123456");
+  //
+  //     try {
+  //       _auth.signInWithCredential(credential).then((value) => {print(value)});
+  //     } on FirebaseAuthException catch (e) {
+  //       print(e);
+  //     }
+  //   },
+  //   codeAutoRetrievalTimeout: (String verificationId) {
+  //     print(3);
+  //   },
+  // );
+}
+
 void main() {
+  login();
   runApp(const MyApp());
 }
 
@@ -63,12 +115,9 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Milou'),
+      home: MyHomePage(title: 'Milou'),
     );
   }
 }
@@ -127,87 +176,189 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _prefs.then((SharedPreferences prefs) {
-      jsonDecode(prefs.getString('data').toString()).forEach((item) => rowStates.add(RowState.fromJson(item)));
-      setState(() {
-      });
+      if (prefs.containsKey('data')) {
+        jsonDecode(prefs.getString('data').toString())
+            .forEach((item) => rowStates.add(RowState.fromJson(item)));
+      }
+      setState(() {});
     });
   }
 
-  Widget getCommandWidgets(List<RowState> rowStates) {
+  String dateFmt(RowState state) {
+    if (state.logs.isEmpty) {
+      return "Never Performed";
+    } else {
+      DateTime lastDate =
+          DateTime.fromMillisecondsSinceEpoch(state.logs.last.item2);
+
+      if (lastDate.day == DateTime.now().day &&
+          lastDate.month == DateTime.now().month &&
+          lastDate.year == DateTime.now().year) {
+        return "Last performed today";
+      }
+      return "Last performed ${(DateFormat.yMMMd().format(lastDate))}";
+    }
+  }
+
+  Widget getCommandWidgets() {
     List<Widget> list = <Widget>[];
     for (var i = 0; i < rowStates.length; i++) {
       bool enabled = true;
+      const IconData pets = IconData(0xe4a1, fontFamily: 'MaterialIcons');
+
       RowState state = rowStates[i];
+
       list.add(Card(
+          key: Key(state.name),
           child: Padding(
-              padding: EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(12.0),
               child: Column(
                 children: [
-                  Row(
-                    children: <Widget>[
-                      Text(state.name),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.check,
-                          size: 30,
-                          color: Colors.green,
+                  Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                pets,
+                                size: 30,
+                                color: Colors.green,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  state.cnt += 1;
+                                  state.logs.add(Tuple2<bool, int>(true,
+                                      DateTime.now().millisecondsSinceEpoch));
+                                  _prefs.then((value) => value.setString(
+                                      'data', jsonEncode(rowStates)));
+                                });
+                              },
+                            ),
+                            Text(
+                              state.name,
+                              style: TextStyle(fontSize: 20),
+                            ),
+                          ],
                         ),
-                        onPressed: () {
-                          setState(() {
-                            state.cnt += 1;
-                            state.logs.add(Tuple2<bool, int>(
-                                true, DateTime.now().millisecondsSinceEpoch));
+                        IconButton(
+                          icon: const Icon(
+                            Icons.delete,
+                            size: 30,
+                            color: Colors.red,
+                          ),
+                          onPressed: () {
+                            rowStates.removeAt(i);
                             _prefs.then((value) =>
                                 value.setString('data', jsonEncode(rowStates)));
-                          });
-                        },
-                      ),
-                    ],
+                            setState(() {});
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                   Row(
                     children: [
                       Flexible(
                           child: Text(
-                              'Milou has done this command ${state.cnt} number of time successfully',
+                              // 'Milou has done this command ${state.cnt} number of time successfully',
+                              '${dateFmt(state)}, total ${state.cnt}',
                               style: Theme.of(context).textTheme.bodyText1))
                     ],
                   )
                 ],
               ))));
     }
-    return Column(children: list);
+
+    return ScrollConfiguration(
+        behavior: ScrollConfiguration.of(context).copyWith(
+          dragDevices: {
+            PointerDeviceKind.touch,
+            PointerDeviceKind.mouse,
+          },
+        ),
+        child: ReorderableListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            onReorder: (int oldIndex, int newIndex) {
+              setState(() {
+                oldIndex = (oldIndex < 0) ? 0 : oldIndex;
+                newIndex = newIndex >= rowStates.length
+                    ? (rowStates.length - 1)
+                    : newIndex;
+                final temp = rowStates[oldIndex];
+                rowStates[oldIndex] = rowStates[newIndex];
+                rowStates[newIndex] = temp;
+              });
+            },
+            children: list));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            getCommandWidgets(rowStates),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Future<String?> str = showDialog(
-              context: context,
-              builder: (BuildContext context) => _buildPopupDialog(context));
-          str.then((value) => setState(() {
-                if (value != null) {
-                  rowStates.add(RowState(value.toString(), 0, []));
-                  _prefs.then((value) =>
-                      value.setString('data', jsonEncode(rowStates)));
-                }
-              }));
-        },
-        tooltip: 'Add new command',
-        child: const Icon(Icons.add),
-      ),
-    );
+    return DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(widget.title),
+              bottom: const TabBar(
+                tabs: <Widget>[
+                  Tab(
+                    text: "Train",
+                  ),
+                  Tab(
+                    text: "Goal",
+                  ),
+                ],
+              ),
+          ),
+          drawer: Drawer(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  const Text('This is the Drawer'),
+                  ElevatedButton(
+                    onPressed: _closeDrawer,
+                    child: const Text('Close Drawer'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          body: TabBarView(
+            children: <Widget>[
+              getCommandWidgets(),
+              const Center(
+                child: Text("TAB PLAN"),
+              ),
+            ],
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              Future<String?> str = showDialog(
+                  context: context,
+                  builder: (BuildContext context) =>
+                      _buildPopupDialog(context));
+              str.then((value) => setState(() {
+                    if (value != null) {
+                      rowStates.add(RowState(value.toString(), 0, []));
+                      _prefs.then((value) =>
+                          value.setString('data', jsonEncode(rowStates)));
+                    }
+                  }));
+            },
+            tooltip: 'Add new command',
+            child: const Icon(Icons.add),
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
+        ));
+  }
+
+  void _closeDrawer() {
+    Navigator.of(context).pop();
   }
 }
