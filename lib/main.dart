@@ -9,6 +9,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutterfire_ui/auth.dart';
 
 import 'home.dart';
+import 'storage.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -33,6 +34,7 @@ class MyApp extends StatelessWidget {
 }
 
 void main() async {
+  Storage.init();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

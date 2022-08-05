@@ -3,17 +3,21 @@ import 'dart:ui';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Storage{
+  static late SharedPreferences sh;
 
-  Future<bool> has(String key) {
-    return SharedPreferences.getInstance().then((value) => value.containsKey('data'));
+  static void init() async {
+    sh = await SharedPreferences.getInstance();
   }
 
-  Future<bool> store(String key, String val) {
-    return SharedPreferences.getInstance().then((value) => value.setString('data', val));
+  static bool has(String key) {
+    return sh.containsKey('data');
   }
 
-  Future<String?> get(String key, String val) {
-    return SharedPreferences.getInstance().then((value)=> value.getString('data'));
+  static String? get(String key) {
+    return sh.getString('data');
   }
 
+  static Future<bool> store(String key, String val) {
+    return sh.setString('data', val);
+  }
 }

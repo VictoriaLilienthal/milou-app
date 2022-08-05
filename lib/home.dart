@@ -72,19 +72,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   List<RowState> rowStates = <RowState>[];
 
   @override
   void initState() {
     super.initState();
-    _prefs.then((SharedPreferences prefs) {
-      if (prefs.containsKey('data')) {
-        jsonDecode(prefs.getString('data').toString())
+    if(Storage.has('data')) {
+      setState(() {
+        jsonDecode(Storage.get('data').toString())
             .forEach((item) => rowStates.add(RowState.fromJson(item)));
-      }
-      setState(() {});
-    });
+      });
+    }
   }
 
   String dateFmt(RowState state) {
@@ -144,14 +142,13 @@ class _MyHomePageState extends State<MyHomePage> {
                                   state.cnt += 1;
                                   state.logs.add(Tuple2<bool, int>(true,
                                       DateTime.now().millisecondsSinceEpoch));
-                                  _prefs.then((value) => value.setString(
-                                      'data', jsonEncode(rowStates)));
+                                  Storage.store('data', jsonEncode(rowStates));
                                 });
                               },
                             ),
                             Text(
                               state.name,
-                              style: TextStyle(fontSize: 20),
+                              style: const TextStyle(fontSize: 20),
                             ),
                           ],
                         ),
@@ -162,10 +159,10 @@ class _MyHomePageState extends State<MyHomePage> {
                             color: Colors.red,
                           ),
                           onPressed: () {
-                            rowStates.removeAt(i);
-                            _prefs.then((value) =>
-                                value.setString('data', jsonEncode(rowStates)));
-                            setState(() {});
+                            setState(() {
+                              rowStates.removeAt(i);
+                            });
+                            Storage.store('data', jsonEncode(rowStates));
                           },
                         ),
                       ],
@@ -263,8 +260,7 @@ class _MyHomePageState extends State<MyHomePage> {
               str.then((value) => setState(() {
                     if (value != null) {
                       rowStates.add(RowState(value.toString(), 0, []));
-                      _prefs.then((value) =>
-                          value.setString('data', jsonEncode(rowStates)));
+                      Storage.store('data', jsonEncode(rowStates));
                     }
                   }));
             },
