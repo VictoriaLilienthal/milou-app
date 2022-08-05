@@ -6,18 +6,28 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutterfire_ui/auth.dart';
 
 import 'home.dart';
-import 'login_view.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    const providerConfigs = [EmailProviderConfiguration()];
+
     return MaterialApp(
       title: 'Milou App',
-      home: LoginView(),
+      home: SignInScreen(
+        providerConfigs: providerConfigs,
+        actions: [
+          AuthStateChangeAction<SignedIn>((context, state) {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const HomeApp()));
+          }),
+        ],
+      ),
     );
   }
 }
@@ -26,6 +36,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
   if (kDebugMode) {
     await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
     FirebaseDatabase.instance.databaseURL =
@@ -34,6 +45,15 @@ void main() async {
     FirebaseDatabase.instance.databaseURL =
         "https://milou-4b168-default-rtdb.firebaseio.com/";
   }
-
-  runApp(const HomeApp());
+  runApp(const MyApp());
 }
+//
+// ProfileScreen(
+// providerConfigs: providerConfigs,
+// actions: [
+// SignedOutAction((context) {
+// Navigator.of(context).pushReplacement(
+// MaterialPageRoute(builder: (context) => const SignInScreen(providerConfigs: providerConfigs)));
+// }),
+// ],
+// )

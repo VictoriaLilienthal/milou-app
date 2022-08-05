@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,66 +7,19 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-
-List<Tuple2<bool, int>> fromJsonToTupleList(String json) {
-  Iterable iterable = jsonDecode(json);
-
-  List newList = iterable.toList();
-
-  final newTuples = newList
-      .map(
-        (e) => Tuple2<bool, int>(
-          e['1'],
-          e['2'],
-        ),
-      )
-      .toList();
-  return newTuples;
-}
-
-String toJsonFromTupleList(List<Tuple2> tuples) {
-  List list = tuples
-      .map(
-        (e) => {
-          '1': e.item1,
-          '2': e.item2,
-        },
-      )
-      .toList();
-
-  String json = jsonEncode(list);
-  return json;
-}
-
-class RowState {
-  String name;
-  int cnt;
-  List<Tuple2<bool, int>> logs;
-
-  RowState(this.name, this.cnt, this.logs);
-
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'cnt': cnt,
-        'logs': toJsonFromTupleList(logs),
-      };
-
-  RowState.fromJson(Map<String, dynamic> json)
-      : name = json['name'],
-        cnt = json['cnt'],
-        logs = fromJsonToTupleList(json['logs']);
-}
+import 'rowstate.dart';
+import 'storage.dart';
 
 final prefs = SharedPreferences.getInstance();
+const IconData pets = IconData(0xe4a1, fontFamily: 'MaterialIcons');
 
 class HomeApp extends StatelessWidget {
   const HomeApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Milou App',
       home: MyHomePage(title: 'Milou'),
     );
   }
@@ -155,7 +107,6 @@ class _MyHomePageState extends State<MyHomePage> {
     List<Widget> list = <Widget>[];
     for (var i = 0; i < rowStates.length; i++) {
       bool enabled = true;
-      const IconData pets = IconData(0xe4a1, fontFamily: 'MaterialIcons');
 
       RowState state = rowStates[i];
 
@@ -231,7 +182,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     ],
                   )
                 ],
-              ))));
+              ))
+      )
+
+      );
     }
 
     return ScrollConfiguration(
@@ -242,18 +196,16 @@ class _MyHomePageState extends State<MyHomePage> {
           },
         ),
         child: ReorderableListView(
-            physics: const AlwaysScrollableScrollPhysics(),
+            physics: const BouncingScrollPhysics(),
             scrollDirection: Axis.vertical,
             shrinkWrap: true,
             onReorder: (int oldIndex, int newIndex) {
               setState(() {
-                oldIndex = (oldIndex < 0) ? 0 : oldIndex;
-                newIndex = newIndex >= rowStates.length
-                    ? (rowStates.length - 1)
-                    : newIndex;
-                final temp = rowStates[oldIndex];
-                rowStates[oldIndex] = rowStates[newIndex];
-                rowStates[newIndex] = temp;
+                if (oldIndex < newIndex) {
+                  newIndex -= 1;
+                }
+                final RowState element = rowStates.removeAt(oldIndex);
+                rowStates.insert(newIndex, element);
               });
             },
             children: list));
@@ -324,31 +276,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _closeDrawer() {
+
     Navigator.of(context).pop();
   }
-}
-
-void login() async {
-  // await FirebaseAuth.instance.verifyPhoneNumber(
-  //   phoneNumber: '+16463844693',
-  //   verificationCompleted: (PhoneAuthCredential credential) {
-  //     print(1);
-  //   },
-  //   verificationFailed: (FirebaseAuthException e) {
-  //     print(e);
-  //   },
-  //   codeSent: (String verificationId, int? resendToken) {
-  //     PhoneAuthCredential credential = PhoneAuthProvider.credential(
-  //         verificationId: verificationId, smsCode: "123456");
-  //
-  //     try {
-  //       _auth.signInWithCredential(credential).then((value) => {print(value)});
-  //     } on FirebaseAuthException catch (e) {
-  //       print(e);
-  //     }
-  //   },
-  //   codeAutoRetrievalTimeout: (String verificationId) {
-  //     print(3);
-  //   },
-  // );
 }
