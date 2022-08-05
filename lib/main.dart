@@ -9,7 +9,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter/gestures.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 const bool USE_EMULATOR = true;
 
@@ -65,43 +64,44 @@ class RowState {
 final prefs = SharedPreferences.getInstance();
 
 void login() async {
+//   await Firebase.initializeApp(
+//     options: DefaultFirebaseOptions.currentPlatform,
+//   );
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+//   if (USE_EMULATOR) {
+//     await FirebaseAuth.instance.useEmulator('http://localhost:9099');
+//   }
+//   //
+//   try {
+//     await FirebaseAuth.instance
+//         .signInAnonymously()
+//         .then((value) => {print(value)});
+//   } on FirebaseAuthException catch (e) {
+//     print(e);
+//   }
 
-  if (USE_EMULATOR) {
-    await FirebaseAuth.instance.useEmulator('http://localhost:9099');
-  }
-  //
-  try {
-    await FirebaseAuth.instance.signInAnonymously().then((value) => {print(value)});
-  } on FirebaseAuthException catch (e) {
-    print(e);
-  }
-
-  // await FirebaseAuth.instance.verifyPhoneNumber(
-  //   phoneNumber: '+16463844693',
-  //   verificationCompleted: (PhoneAuthCredential credential) {
-  //     print(1);
-  //   },
-  //   verificationFailed: (FirebaseAuthException e) {
-  //     print(e);
-  //   },
-  //   codeSent: (String verificationId, int? resendToken) {
-  //     PhoneAuthCredential credential = PhoneAuthProvider.credential(
-  //         verificationId: verificationId, smsCode: "123456");
-  //
-  //     try {
-  //       _auth.signInWithCredential(credential).then((value) => {print(value)});
-  //     } on FirebaseAuthException catch (e) {
-  //       print(e);
-  //     }
-  //   },
-  //   codeAutoRetrievalTimeout: (String verificationId) {
-  //     print(3);
-  //   },
-  // );
+//   // await FirebaseAuth.instance.verifyPhoneNumber(
+//   //   phoneNumber: '+16463844693',
+//   //   verificationCompleted: (PhoneAuthCredential credential) {
+//   //     print(1);
+//   //   },
+//   //   verificationFailed: (FirebaseAuthException e) {
+//   //     print(e);
+//   //   },
+//   //   codeSent: (String verificationId, int? resendToken) {
+//   //     PhoneAuthCredential credential = PhoneAuthProvider.credential(
+//   //         verificationId: verificationId, smsCode: "123456");
+//   //
+//   //     try {
+//   //       _auth.signInWithCredential(credential).then((value) => {print(value)});
+//   //     } on FirebaseAuthException catch (e) {
+//   //       print(e);
+//   //     }
+//   //   },
+//   //   codeAutoRetrievalTimeout: (String verificationId) {
+//   //     print(3);
+//   //   },
+//   // );
 }
 
 void main() {
@@ -304,16 +304,16 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Scaffold(
           appBar: AppBar(
             title: Text(widget.title),
-              bottom: const TabBar(
-                tabs: <Widget>[
-                  Tab(
-                    text: "Train",
-                  ),
-                  Tab(
-                    text: "Goal",
-                  ),
-                ],
-              ),
+            bottom: const TabBar(
+              tabs: <Widget>[
+                Tab(
+                  text: "Train",
+                ),
+                Tab(
+                  text: "Goal",
+                ),
+              ],
+            ),
           ),
           drawer: Drawer(
             child: Center(
