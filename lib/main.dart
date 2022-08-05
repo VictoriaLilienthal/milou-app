@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,8 +10,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter/gestures.dart';
+import 'package:firebase_database/firebase_database.dart';
 
-const bool USE_EMULATOR = true;
+
 
 List<Tuple2<bool, int>> fromJsonToTupleList(String json) {
   Iterable iterable = jsonDecode(json);
@@ -64,44 +66,49 @@ class RowState {
 final prefs = SharedPreferences.getInstance();
 
 void login() async {
-//   await Firebase.initializeApp(
-//     options: DefaultFirebaseOptions.currentPlatform,
-//   );
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  if (kDebugMode) {
+    await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
+    FirebaseDatabase.instance.databaseURL = "http://localhost:9000/?ns=milou-4b168";
+  } else {
+    FirebaseDatabase.instance.databaseURL = "https://milou-4b168-default-rtdb.firebaseio.com/";
+  }
 
-//   if (USE_EMULATOR) {
-//     await FirebaseAuth.instance.useEmulator('http://localhost:9099');
-//   }
-//   //
-//   try {
-//     await FirebaseAuth.instance
-//         .signInAnonymously()
-//         .then((value) => {print(value)});
-//   } on FirebaseAuthException catch (e) {
-//     print(e);
-//   }
+  try {
+     await FirebaseAuth.instance
+        .signInAnonymously()
+        .then((value) => {print(value)});
+  } on FirebaseAuthException catch (e) {
+    print(e);
+  }
 
-//   // await FirebaseAuth.instance.verifyPhoneNumber(
-//   //   phoneNumber: '+16463844693',
-//   //   verificationCompleted: (PhoneAuthCredential credential) {
-//   //     print(1);
-//   //   },
-//   //   verificationFailed: (FirebaseAuthException e) {
-//   //     print(e);
-//   //   },
-//   //   codeSent: (String verificationId, int? resendToken) {
-//   //     PhoneAuthCredential credential = PhoneAuthProvider.credential(
-//   //         verificationId: verificationId, smsCode: "123456");
-//   //
-//   //     try {
-//   //       _auth.signInWithCredential(credential).then((value) => {print(value)});
-//   //     } on FirebaseAuthException catch (e) {
-//   //       print(e);
-//   //     }
-//   //   },
-//   //   codeAutoRetrievalTimeout: (String verificationId) {
-//   //     print(3);
-//   //   },
-//   // );
+
+
+
+  // await FirebaseAuth.instance.verifyPhoneNumber(
+  //   phoneNumber: '+16463844693',
+  //   verificationCompleted: (PhoneAuthCredential credential) {
+  //     print(1);
+  //   },
+  //   verificationFailed: (FirebaseAuthException e) {
+  //     print(e);
+  //   },
+  //   codeSent: (String verificationId, int? resendToken) {
+  //     PhoneAuthCredential credential = PhoneAuthProvider.credential(
+  //         verificationId: verificationId, smsCode: "123456");
+  //
+  //     try {
+  //       _auth.signInWithCredential(credential).then((value) => {print(value)});
+  //     } on FirebaseAuthException catch (e) {
+  //       print(e);
+  //     }
+  //   },
+  //   codeAutoRetrievalTimeout: (String verificationId) {
+  //     print(3);
+  //   },
+  // );
 }
 
 void main() {
