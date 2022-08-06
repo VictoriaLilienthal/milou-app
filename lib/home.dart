@@ -1,12 +1,14 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutterfire_ui/auth.dart';
 import 'package:tuple/tuple.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'main.dart';
 import 'rowstate.dart';
 import 'storage.dart';
 
@@ -77,7 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    if(Storage.has('data')) {
+    if (Storage.has('data')) {
       setState(() {
         jsonDecode(Storage.get('data').toString())
             .forEach((item) => rowStates.add(RowState.fromJson(item)));
@@ -170,19 +172,19 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   Row(
                     children: [
-                      Expanded( child: Text('${dateFmt(state)}',
-                          style: Theme.of(context).textTheme.bodyText1)),
-                      Expanded( child: Text('today ${today_cnt}',
-                          style: Theme.of(context).textTheme.bodyText1)),
-                      Expanded( child: Text('All time ${state.cnt}',
-                          style: Theme.of(context).textTheme.bodyText1)),
+                      Expanded(
+                          child: Text('${dateFmt(state)}',
+                              style: Theme.of(context).textTheme.bodyText1)),
+                      Expanded(
+                          child: Text('today ${today_cnt}',
+                              style: Theme.of(context).textTheme.bodyText1)),
+                      Expanded(
+                          child: Text('All time ${state.cnt}',
+                              style: Theme.of(context).textTheme.bodyText1)),
                     ],
                   )
                 ],
-              ))
-      )
-
-      );
+              ))));
     }
 
     return ScrollConfiguration(
@@ -227,19 +229,29 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           drawer: Drawer(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  const Text('This is the Drawer'),
-                  ElevatedButton(
-                    onPressed: _closeDrawer,
-                    child: const Text('Close Drawer'),
-                  ),
-                ],
+              child: ListView(
+            // Important: Remove any padding from the ListView.
+            padding: EdgeInsets.zero,
+            children: [
+              ListTile(
+                title: const Text('Profile'),
+                onTap: () {
+                  const providerConfigs = [EmailProviderConfiguration()];
+                  ProfileScreen profileScreen = ProfileScreen(
+                    providerConfigs: providerConfigs,
+                    actions: [
+                      SignedOutAction((context) {
+                        Navigator.of(context).pushReplacement(MaterialPageRoute(
+                            builder: (context) => LandingApp()));
+                      }),
+                    ],
+                  );
+                  Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => profileScreen));
+                },
               ),
-            ),
-          ),
+            ],
+          )),
           body: TabBarView(
             children: <Widget>[
               getCommandWidgets(),
@@ -272,7 +284,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _closeDrawer() {
-
     Navigator.of(context).pop();
   }
 }
