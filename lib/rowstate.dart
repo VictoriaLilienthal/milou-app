@@ -5,7 +5,6 @@ class RowState {
   String name;
   int cnt;
   List<Tuple2<bool, int>> logs;
-  int id = DateTime.now().millisecondsSinceEpoch;
 
   RowState(this.name, [this.cnt=0, this.logs=const []] );
 
@@ -13,13 +12,11 @@ class RowState {
         'name': name,
         'cnt': cnt,
         'logs': toJsonFromTupleList(logs),
-        'id' : id
       };
 
   RowState.fromJson(Map<String, dynamic> json)
       : name = json['name'],
         cnt = json['cnt'],
-        id = json.containsKey('id')? json['id']: DateTime.now().millisecondsSinceEpoch,
         logs = fromJsonToTupleList(json['logs']);
 }
 

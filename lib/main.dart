@@ -23,7 +23,6 @@ class LandingApp extends StatelessWidget {
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
-          debugPrint(snapshot.toString());
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
                 child: SpinKitDancingSquare(

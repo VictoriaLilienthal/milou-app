@@ -118,87 +118,98 @@ class _MyHomePageState extends State<MyHomePage> {
         return false;
       }).length;
 
-      Card card = Card(
-          key: ValueKey<int>(state.id),
-          child: InkWell(
-              onTap: () {
-                setState(() {
-                  state.cnt += 1;
-                  state.logs.add(Tuple2<bool, int>(
-                      true, DateTime.now().millisecondsSinceEpoch));
-                  Storage.store('data', jsonEncode(rowStates));
-                });
-              },
-              onLongPress: () {
-                // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                //   content: Text('Long'),
-                // ));
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  pets,
-                                  size: 30,
-                                  color: Colors.green,
+      Widget card = Dismissible(
+        key: Key('${state.name}$i'),
+        direction: DismissDirection.startToEnd,
+        onDismissed: (direction) {
+          setState(() {
+            rowStates.removeAt(i);
+          });
+          Storage.store('data', jsonEncode(rowStates));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('${state.name} deleted')));
+        },
+        child: Card(
+            child: InkWell(
+                onTap: () {
+                  setState(() {
+                    state.cnt += 1;
+                    state.logs.add(Tuple2<bool, int>(
+                        true, DateTime.now().millisecondsSinceEpoch));
+                    Storage.store('data', jsonEncode(rowStates));
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(
+                                    pets,
+                                    size: 30,
+                                    color: Colors.green,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      state.cnt += 1;
+                                      state.logs.add(Tuple2<bool, int>(
+                                          true,
+                                          DateTime.now()
+                                              .millisecondsSinceEpoch));
+                                      Storage.store(
+                                          'data', jsonEncode(rowStates));
+                                    });
+                                  },
                                 ),
-                                onPressed: () {
-                                  setState(() {
-                                    state.cnt += 1;
-                                    state.logs.add(Tuple2<bool, int>(true,
-                                        DateTime.now().millisecondsSinceEpoch));
-                                    Storage.store(
-                                        'data', jsonEncode(rowStates));
-                                  });
-                                },
-                              ),
-                              Text(
-                                state.name,
-                                style: const TextStyle(fontSize: 20),
-                              ),
-                            ],
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.delete,
-                              size: 30,
-                              color: Colors.red,
+                                Text(
+                                  state.name,
+                                  style: const TextStyle(fontSize: 20),
+                                ),
+                              ],
                             ),
-                            onPressed: () {
-                              setState(() {
-                                rowStates.removeAt(i);
-                              });
-                              Storage.store('data', jsonEncode(rowStates));
-                            },
-                          ),
-                        ],
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete,
+                                size: 30,
+                                color: Colors.red,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  rowStates.removeAt(i);
+                                });
+                                Storage.store('data', jsonEncode(rowStates));
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                            child: Text('${dateFmt(state)}',
-                                style: Theme.of(context).textTheme.bodyText1)),
-                        Expanded(
-                            child: Text('today ${todayCnt}',
-                                style: Theme.of(context).textTheme.bodyText1)),
-                        Expanded(
-                            child: Text('All time ${state.cnt}',
-                                style: Theme.of(context).textTheme.bodyText1)),
-                      ],
-                    )
-                  ],
-                ),
-              )));
+                      Row(
+                        children: [
+                          Expanded(
+                              child: Text('${dateFmt(state)}',
+                                  style:
+                                      Theme.of(context).textTheme.bodyText1)),
+                          Expanded(
+                              child: Text('today ${todayCnt}',
+                                  style:
+                                      Theme.of(context).textTheme.bodyText1)),
+                          Expanded(
+                              child: Text('All time ${state.cnt}',
+                                  style:
+                                      Theme.of(context).textTheme.bodyText1)),
+                        ],
+                      )
+                    ],
+                  ),
+                ))),
+      );
       list.add(card);
     }
 
