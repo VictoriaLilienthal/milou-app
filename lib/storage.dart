@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-class Storage{
+class Storage {
   static late SharedPreferences sh;
 
   static void init() async {

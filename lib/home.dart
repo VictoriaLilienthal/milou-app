@@ -107,10 +107,8 @@ class _MyHomePageState extends State<MyHomePage> {
     List<Widget> list = <Widget>[];
     for (var i = 0; i < rowStates.length; i++) {
       bool enabled = true;
-
       RowState state = rowStates[i];
-
-      int today_cnt = state.logs.where((f) {
+      int todayCnt = state.logs.where((f) {
         DateTime d = DateTime.fromMillisecondsSinceEpoch(f.item2);
         if (d.day == DateTime.now().day &&
             d.month == DateTime.now().month &&
@@ -120,71 +118,88 @@ class _MyHomePageState extends State<MyHomePage> {
         return false;
       }).length;
 
-      list.add(Card(
-          key: Key(state.name),
-          child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(
-                                pets,
-                                size: 30,
-                                color: Colors.green,
+      Card card = Card(
+          key: ValueKey<int>(state.id),
+          child: InkWell(
+              onTap: () {
+                setState(() {
+                  state.cnt += 1;
+                  state.logs.add(Tuple2<bool, int>(
+                      true, DateTime.now().millisecondsSinceEpoch));
+                  Storage.store('data', jsonEncode(rowStates));
+                });
+              },
+              onLongPress: () {
+                // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                //   content: Text('Long'),
+                // ));
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  pets,
+                                  size: 30,
+                                  color: Colors.green,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    state.cnt += 1;
+                                    state.logs.add(Tuple2<bool, int>(true,
+                                        DateTime.now().millisecondsSinceEpoch));
+                                    Storage.store(
+                                        'data', jsonEncode(rowStates));
+                                  });
+                                },
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  state.cnt += 1;
-                                  state.logs.add(Tuple2<bool, int>(true,
-                                      DateTime.now().millisecondsSinceEpoch));
-                                  Storage.store('data', jsonEncode(rowStates));
-                                });
-                              },
-                            ),
-                            Text(
-                              state.name,
-                              style: const TextStyle(fontSize: 20),
-                            ),
-                          ],
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.delete,
-                            size: 30,
-                            color: Colors.red,
+                              Text(
+                                state.name,
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                            ],
                           ),
-                          onPressed: () {
-                            setState(() {
-                              rowStates.removeAt(i);
-                            });
-                            Storage.store('data', jsonEncode(rowStates));
-                          },
-                        ),
-                      ],
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              size: 30,
+                              color: Colors.red,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                rowStates.removeAt(i);
+                              });
+                              Storage.store('data', jsonEncode(rowStates));
+                            },
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                          child: Text('${dateFmt(state)}',
-                              style: Theme.of(context).textTheme.bodyText1)),
-                      Expanded(
-                          child: Text('today ${today_cnt}',
-                              style: Theme.of(context).textTheme.bodyText1)),
-                      Expanded(
-                          child: Text('All time ${state.cnt}',
-                              style: Theme.of(context).textTheme.bodyText1)),
-                    ],
-                  )
-                ],
-              ))));
+                    Row(
+                      children: [
+                        Expanded(
+                            child: Text('${dateFmt(state)}',
+                                style: Theme.of(context).textTheme.bodyText1)),
+                        Expanded(
+                            child: Text('today ${todayCnt}',
+                                style: Theme.of(context).textTheme.bodyText1)),
+                        Expanded(
+                            child: Text('All time ${state.cnt}',
+                                style: Theme.of(context).textTheme.bodyText1)),
+                      ],
+                    )
+                  ],
+                ),
+              )));
+      list.add(card);
     }
 
     return ScrollConfiguration(
@@ -246,7 +261,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       }),
                     ],
                   );
-                  Navigator.of(context).pushReplacement(
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
                       MaterialPageRoute(builder: (context) => profileScreen));
                 },
               ),

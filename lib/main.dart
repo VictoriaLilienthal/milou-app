@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -20,10 +18,12 @@ class LandingApp extends StatelessWidget {
     const providerConfigs = [EmailProviderConfiguration()];
 
     return MaterialApp(
-      title: 'Milou App',
+      title: 'Milou',
+      routes: {},
       home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.userChanges(),
+        stream: FirebaseAuth.instance.authStateChanges(),
         builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
+          debugPrint(snapshot.toString());
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
                 child: SpinKitDancingSquare(
