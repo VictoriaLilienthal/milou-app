@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutterfire_ui/auth.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
 import 'home.dart';
 import 'storage.dart';
@@ -32,6 +33,11 @@ class LandingApp extends StatelessWidget {
           }
           final String? uid = snapshot.data?.uid;
           if (uid != null) {
+            FirebaseAnalytics.instance.setUserId(id: uid);
+            FirebaseAnalytics.instance.logLogin(
+                loginMethod: "email"
+            );
+
             return const HomeApp();
           } else {
             return SignInScreen(
@@ -63,6 +69,8 @@ void main() async {
   } else {
     FirebaseDatabase.instance.databaseURL =
         "https://milou-4b168-default-rtdb.firebaseio.com/";
+    FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+
   }
   runApp(const LandingApp());
 }

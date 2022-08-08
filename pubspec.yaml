@@ -33,6 +33,7 @@ dependencies:
   flutter_platform_widgets: ^2.0.0
   uuid: ^3.0.6
   charts_flutter: any
+  firebase_analytics: ^9.3.0
 
 flutter:
 

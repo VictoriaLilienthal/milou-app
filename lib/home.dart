@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutterfire_ui/auth.dart';
+import 'package:milou_app/chart.dart';
 import 'package:tuple/tuple.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -107,7 +108,6 @@ class _MainAppState extends State<MainApp> {
   Widget getCommandWidgets() {
     List<Widget> list = <Widget>[];
     for (var i = 0; i < rowStates.length; i++) {
-      bool enabled = true;
       RowState state = rowStates[i];
       int todayCnt = state.logs.where((f) {
         DateTime d = DateTime.fromMillisecondsSinceEpoch(f.item2);
@@ -175,19 +175,32 @@ class _MainAppState extends State<MainApp> {
                                 ),
                               ],
                             ),
+                            // IconButton(
+                            //   icon: const Icon(
+                            //     Icons.delete,
+                            //     size: 30,
+                            //     color: Colors.red,
+                            //   ),
+                            //   onPressed: () {
+                            //     setState(() {
+                            //       rowStates.removeAt(i);
+                            //     });
+                            //     Storage.store('data', jsonEncode(rowStates));
+                            //   },
+                            // ),
                             IconButton(
                               icon: const Icon(
-                                Icons.delete,
+                                Icons.bar_chart,
                                 size: 30,
-                                color: Colors.red,
+                                color: Colors.blue,
                               ),
                               onPressed: () {
-                                setState(() {
-                                  rowStates.removeAt(i);
-                                });
-                                Storage.store('data', jsonEncode(rowStates));
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (context) =>
+                                        SimpleTimeSeriesChart.fromLogs(
+                                            state.logs)));
                               },
-                            ),
+                            )
                           ],
                         ),
                       ),
@@ -233,9 +246,7 @@ class _MainAppState extends State<MainApp> {
                 final RowState element = rowStates.removeAt(oldIndex);
                 rowStates.insert(newIndex, element);
                 Storage.store('data', jsonEncode(rowStates));
-              }
-
-              );
+              });
             },
             children: list));
   }
@@ -272,7 +283,7 @@ class _MainAppState extends State<MainApp> {
                     actions: [
                       SignedOutAction((context) {
                         Navigator.of(context).pushReplacement(MaterialPageRoute(
-                            builder: (context) => LandingApp()));
+                            builder: (context) => const LandingApp()));
                       }),
                     ],
                   );
@@ -317,5 +328,22 @@ class _MainAppState extends State<MainApp> {
 
   void _closeDrawer() {
     Navigator.of(context).pop();
+  }
+
+  void showChart(RowState state) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+              title: const Text('Training logs'),
+              content: SimpleTimeSeriesChart.fromLogs(state.logs),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text("Close"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ));
   }
 }
