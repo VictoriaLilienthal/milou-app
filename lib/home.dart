@@ -128,7 +128,8 @@ class _MainAppState extends State<MainApp> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: const [
-              Text("Delete", style: TextStyle(fontSize: 30, color: Colors.white)),
+              Text("Delete ",
+                  style: TextStyle(fontSize: 30, color: Colors.white)),
               Icon(
                 Icons.delete,
                 size: 30,
@@ -136,7 +137,6 @@ class _MainAppState extends State<MainApp> {
               )
             ],
           ),
-        )
         ),
         onDismissed: (direction) {
           setState(() {
