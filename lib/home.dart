@@ -123,7 +123,20 @@ class _MainAppState extends State<MainApp> {
         key: Key(state.id),
         direction: DismissDirection.endToStart,
         background: Container(
+          alignment: Alignment.centerRight,
           color: Colors.redAccent,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: const [
+              Text("Delete", style: TextStyle(fontSize: 30, color: Colors.white)),
+              Icon(
+                Icons.delete,
+                size: 30,
+                color: Colors.white,
+              )
+            ],
+          ),
+        )
         ),
         onDismissed: (direction) {
           setState(() {
