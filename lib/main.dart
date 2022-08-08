@@ -16,7 +16,7 @@ class LandingApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const providerConfigs = [EmailProviderConfiguration()];
+    const providerConfigs = [EmailProviderConfiguration(),PhoneProviderConfiguration()];
 
     return MaterialApp(
       title: 'Milou',
