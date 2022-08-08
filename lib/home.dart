@@ -121,7 +121,7 @@ class _MainAppState extends State<MainApp> {
 
       Widget card = Dismissible(
         key: Key(state.id),
-        direction: DismissDirection.endtoStart,
+        direction: DismissDirection.endToStart,
         onDismissed: (direction) {
           setState(() {
             rowStates.removeAt(i);
