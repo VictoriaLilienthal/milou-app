@@ -1,21 +1,40 @@
 import 'package:tuple/tuple.dart';
 import 'dart:convert';
+import 'package:uuid/uuid.dart';
 
 class RowState {
   String name;
   int cnt;
   List<Tuple2<bool, int>> logs;
+  String id;
 
-  RowState(this.name, [this.cnt=0, this.logs=const []] );
+  RowState(this.id, this.name, [this.cnt = 0, this.logs = const []]);
+
+  static bool isJSStr(Map<String, dynamic> json) {
+      if(!json.containsKey('id')) {
+        return false;
+      }
+      try {
+        dynamic val = json['id'];
+        String s = val;
+      } catch (e) {
+        return false;
+      }
+      return true;
+
+  }
 
   Map<String, dynamic> toJson() => {
+        'id': id,
         'name': name,
         'cnt': cnt,
         'logs': toJsonFromTupleList(logs),
       };
 
+
   RowState.fromJson(Map<String, dynamic> json)
-      : name = json['name'],
+      : id = isJSStr(json)? json['id']: const Uuid().v4(),
+        name = json['name'],
         cnt = json['cnt'],
         logs = fromJsonToTupleList(json['logs']);
 }

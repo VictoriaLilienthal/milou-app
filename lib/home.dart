@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:uuid/uuid.dart';
 import 'main.dart';
 import 'rowstate.dart';
 import 'storage.dart';
@@ -22,7 +23,7 @@ class HomeApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       title: 'Milou App',
-      home: MyHomePage(title: 'Milou'),
+      home: MainApp(title: 'Milou'),
     );
   }
 }
@@ -62,18 +63,18 @@ Widget _buildPopupDialog(BuildContext context) {
   );
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({
+class MainApp extends StatefulWidget {
+  const MainApp({
     Key? key,
     required this.title,
   }) : super(key: key);
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MainApp> createState() => _MainAppState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MainAppState extends State<MainApp> {
   List<RowState> rowStates = <RowState>[];
 
   @override
@@ -119,7 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }).length;
 
       Widget card = Dismissible(
-        key: Key('${state.name}$i'),
+        key: Key(state.id),
         direction: DismissDirection.startToEnd,
         onDismissed: (direction) {
           setState(() {
@@ -231,7 +232,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 }
                 final RowState element = rowStates.removeAt(oldIndex);
                 rowStates.insert(newIndex, element);
-              });
+                Storage.store('data', jsonEncode(rowStates));
+              }
+
+              );
             },
             children: list));
   }
@@ -298,7 +302,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       _buildPopupDialog(context));
               str.then((value) => setState(() {
                     if (value != null) {
-                      rowStates.add(RowState(value.toString(), 0, []));
+                      rowStates
+                          .add(RowState(const Uuid().v4(), value.toString()));
                       Storage.store('data', jsonEncode(rowStates));
                     }
                   }));

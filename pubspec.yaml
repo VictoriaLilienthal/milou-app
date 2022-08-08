@@ -16,10 +16,10 @@ dependencies:
   auth_service:
     path: packages/auth_service
 
-  cupertino_icons: any
+  cupertino_icons: ^1.0.5
   audioplayers: ^1.0.1
   tuple: ^2.0.0
-  shared_preferences: any
+  shared_preferences: ^2.0.15
   flat_icons_flutter: ^1.0.2
   intl: ^0.17.0
   firebase_storage: ^10.3.4
@@ -31,6 +31,8 @@ dependencies:
   flutter_lints: ^2.0.0
   flutterfire_ui: ^0.4.3+4
   flutter_platform_widgets: ^2.0.0
+  uuid: ^3.0.6
+  charts_flutter: any
 
 flutter:
 
