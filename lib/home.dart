@@ -118,10 +118,13 @@ class _MainAppState extends State<MainApp> {
         }
         return false;
       }).length;
-
+//Swipe to delete
       Widget card = Dismissible(
         key: Key(state.id),
         direction: DismissDirection.endToStart,
+        background: Container(
+          color: Colors.redAccent,
+        ),
         onDismissed: (direction) {
           setState(() {
             rowStates.removeAt(i);
@@ -175,6 +178,7 @@ class _MainAppState extends State<MainApp> {
                                 ),
                               ],
                             ),
+                            //Delete Button
                             // IconButton(
                             //   icon: const Icon(
                             //     Icons.delete,
