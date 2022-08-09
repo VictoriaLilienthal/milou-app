@@ -16,17 +16,19 @@ class LandingApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Configure types of login we provide, currently just email
     const providerConfigs = [
       EmailProviderConfiguration(),
-      PhoneProviderConfiguration()
     ];
 
+    // This is the main app.
     return MaterialApp(
       title: 'Milou',
-      routes: {},
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
+        // This part connects to firebase for auth
         builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
+          // If we're waiting for connection, show a loading spinner
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
                 child: SpinKitDancingSquare(
@@ -35,18 +37,20 @@ class LandingApp extends StatelessWidget {
             ));
           }
           final String? uid = snapshot.data?.uid;
+
+          // If user already signed in, log to firebase and take to homepage
           if (uid != null) {
             FirebaseAnalytics.instance.setUserId(id: uid);
             FirebaseAnalytics.instance.logLogin(loginMethod: "email");
-
-            return const HomeApp();
+            return const HomePageApp();
           } else {
+            // If not signed in, go to signup page
             return SignInScreen(
               providerConfigs: providerConfigs,
               actions: [
                 AuthStateChangeAction<SignedIn>((context, state) {
-                  Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => const HomeApp()));
+                  Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      builder: (context) => const HomePageApp()));
                 }),
               ],
             );
@@ -59,10 +63,13 @@ class LandingApp extends StatelessWidget {
 
 void main() async {
   Storage.init();
+
+  // Connect to firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // if running locally, connect to local firebase instances for quicker development
   if (kDebugMode) {
     await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
     FirebaseDatabase.instance.databaseURL =
@@ -70,17 +77,7 @@ void main() async {
   } else {
     FirebaseDatabase.instance.databaseURL =
         "https://milou-4b168-default-rtdb.firebaseio.com/";
-    FirebaseAnalytics analytics = FirebaseAnalytics.instance;
   }
+
   runApp(const LandingApp());
 }
-//
-// ProfileScreen(
-// providerConfigs: providerConfigs,
-// actions: [
-// SignedOutAction((context) {
-// Navigator.of(context).pushReplacement(
-// MaterialPageRoute(builder: (context) => const SignInScreen(providerConfigs: providerConfigs)));
-// }),
-// ],
-// )

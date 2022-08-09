@@ -17,19 +17,8 @@ import 'storage.dart';
 final prefs = SharedPreferences.getInstance();
 const IconData pets = IconData(0xe4a1, fontFamily: 'MaterialIcons');
 
-class HomeApp extends StatelessWidget {
-  const HomeApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'Milou App',
-      home: MainApp(title: 'Milou'),
-    );
-  }
-}
-
-Widget _buildPopupDialog(BuildContext context) {
+// This is a widget for new command window
+Widget buildNewCommandDialog(BuildContext context) {
   final textFieldController = TextEditingController();
   return AlertDialog(
     title: const Text('New Command'),
@@ -64,18 +53,16 @@ Widget _buildPopupDialog(BuildContext context) {
   );
 }
 
-class MainApp extends StatefulWidget {
-  const MainApp({
+class HomePageApp extends StatefulWidget {
+  const HomePageApp({
     Key? key,
-    required this.title,
   }) : super(key: key);
-  final String title;
 
   @override
-  State<MainApp> createState() => _MainAppState();
+  State<HomePageApp> createState() => _HomePageAppState();
 }
 
-class _MainAppState extends State<MainApp> {
+class _HomePageAppState extends State<HomePageApp> {
   List<RowState> rowStates = <RowState>[];
 
   @override
@@ -89,7 +76,84 @@ class _MainAppState extends State<MainApp> {
     }
   }
 
-  String dateFmt(RowState state) {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+        title: 'Milou App',
+        home: DefaultTabController(
+            length: 2,
+            child: Scaffold(
+              appBar: AppBar(
+                title: Text("Milou"),
+                bottom: const TabBar(
+                  tabs: <Widget>[
+                    Tab(
+                      text: "Train",
+                    ),
+                    Tab(
+                      text: "Goal",
+                    ),
+                  ],
+                ),
+              ),
+              drawer: Drawer(
+                  child: ListView(
+                // Important: Remove any padding from the ListView.
+                padding: EdgeInsets.zero,
+                children: [
+                  ListTile(
+                    title: const Text('Profile'),
+                    onTap: () {
+                      const providerConfigs = [EmailProviderConfiguration()];
+                      ProfileScreen profileScreen = ProfileScreen(
+                        providerConfigs: providerConfigs,
+                        actions: [
+                          SignedOutAction((context) {
+                            Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                    builder: (context) => const LandingApp()));
+                          }),
+                        ],
+                      );
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => profileScreen));
+                    },
+                  ),
+                ],
+              )),
+              body: TabBarView(
+                children: <Widget>[
+                  getCommandWidgets(),
+                  const Center(
+                    child: SpinKitDancingSquare(
+                      color: Colors.blue,
+                      size: 50.0,
+                    ),
+                  ),
+                ],
+              ),
+              floatingActionButton: FloatingActionButton(
+                onPressed: () {
+                  Future<String?> str = showDialog(
+                      context: context,
+                      builder: (BuildContext context) =>
+                          buildNewCommandDialog(context));
+                  str.then((value) => setState(() {
+                        if (value != null) {
+                          rowStates.add(
+                              RowState(const Uuid().v4(), value.toString()));
+                          Storage.store('data', jsonEncode(rowStates));
+                        }
+                      }));
+                },
+                tooltip: 'Add new command',
+                child: const Icon(Icons.add),
+              ),
+              floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
+            )));
+  }
+
+  static String dateFmt(RowState state) {
     if (state.logs.isEmpty) {
       return "Never Performed";
     } else {
@@ -118,7 +182,8 @@ class _MainAppState extends State<MainApp> {
         }
         return false;
       }).length;
-//Swipe to delete
+
+      //Swipe to delete
       Widget card = Dismissible(
         key: Key(state.id),
         direction: DismissDirection.endToStart,
@@ -200,20 +265,6 @@ class _MainAppState extends State<MainApp> {
                                 ),
                               ],
                             ),
-                            //Delete Button
-                            // IconButton(
-                            //   icon: const Icon(
-                            //     Icons.delete,
-                            //     size: 30,
-                            //     color: Colors.red,
-                            //   ),
-                            //   onPressed: () {
-                            //     setState(() {
-                            //       rowStates.removeAt(i);
-                            //     });
-                            //     Storage.store('data', jsonEncode(rowStates));
-                            //   },
-                            // ),
                             IconButton(
                               icon: const Icon(
                                 Icons.bar_chart,
@@ -275,101 +326,5 @@ class _MainAppState extends State<MainApp> {
               });
             },
             children: list));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return DefaultTabController(
-        length: 2,
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text(widget.title),
-            bottom: const TabBar(
-              tabs: <Widget>[
-                Tab(
-                  text: "Train",
-                ),
-                Tab(
-                  text: "Goal",
-                ),
-              ],
-            ),
-          ),
-          drawer: Drawer(
-              child: ListView(
-            // Important: Remove any padding from the ListView.
-            padding: EdgeInsets.zero,
-            children: [
-              ListTile(
-                title: const Text('Profile'),
-                onTap: () {
-                  const providerConfigs = [EmailProviderConfiguration()];
-                  ProfileScreen profileScreen = ProfileScreen(
-                    providerConfigs: providerConfigs,
-                    actions: [
-                      SignedOutAction((context) {
-                        Navigator.of(context).pushReplacement(MaterialPageRoute(
-                            builder: (context) => const LandingApp()));
-                      }),
-                    ],
-                  );
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => profileScreen));
-                },
-              ),
-            ],
-          )),
-          body: TabBarView(
-            children: <Widget>[
-              getCommandWidgets(),
-              const Center(
-                child: SpinKitDancingSquare(
-                  color: Colors.blue,
-                  size: 50.0,
-                ),
-              ),
-            ],
-          ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              Future<String?> str = showDialog(
-                  context: context,
-                  builder: (BuildContext context) =>
-                      _buildPopupDialog(context));
-              str.then((value) => setState(() {
-                    if (value != null) {
-                      rowStates
-                          .add(RowState(const Uuid().v4(), value.toString()));
-                      Storage.store('data', jsonEncode(rowStates));
-                    }
-                  }));
-            },
-            tooltip: 'Add new command',
-            child: const Icon(Icons.add),
-          ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
-        ));
-  }
-
-  void _closeDrawer() {
-    Navigator.of(context).pop();
-  }
-
-  void showChart(RowState state) {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) => AlertDialog(
-              title: const Text('Training logs'),
-              content: SimpleTimeSeriesChart.fromLogs(state.logs),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text("Close"),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            ));
   }
 }
