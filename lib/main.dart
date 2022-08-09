@@ -16,7 +16,10 @@ class LandingApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const providerConfigs = [EmailProviderConfiguration(),PhoneProviderConfiguration()];
+    const providerConfigs = [
+      EmailProviderConfiguration(),
+      PhoneProviderConfiguration()
+    ];
 
     return MaterialApp(
       title: 'Milou',
@@ -34,9 +37,7 @@ class LandingApp extends StatelessWidget {
           final String? uid = snapshot.data?.uid;
           if (uid != null) {
             FirebaseAnalytics.instance.setUserId(id: uid);
-            FirebaseAnalytics.instance.logLogin(
-                loginMethod: "email"
-            );
+            FirebaseAnalytics.instance.logLogin(loginMethod: "email");
 
             return const HomeApp();
           } else {
@@ -70,7 +71,6 @@ void main() async {
     FirebaseDatabase.instance.databaseURL =
         "https://milou-4b168-default-rtdb.firebaseio.com/";
     FirebaseAnalytics analytics = FirebaseAnalytics.instance;
-
   }
   runApp(const LandingApp());
 }
