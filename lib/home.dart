@@ -82,10 +82,10 @@ class _MainAppState extends State<MainApp> {
   void initState() {
     super.initState();
     if (Storage.has('data')) {
-      setState(() {
-        jsonDecode(Storage.get('data').toString())
-            .forEach((item) => rowStates.add(RowState.fromJson(item)));
-      });
+      Storage.get('data').then((value) => setState(() {
+            jsonDecode(value.toString())
+                .forEach((item) => rowStates.add(RowState.fromJson(item)));
+          }));
     }
   }
 

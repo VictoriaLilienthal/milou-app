@@ -13,15 +13,14 @@ class Storage {
     return sh.containsKey('data');
   }
 
-  static String? get(String key) {
+  static Future<String?> get(String key) {
     final currentUser = FirebaseAuth.instance.currentUser;
     if(currentUser != null){
       String uid = currentUser.uid;
       DatabaseReference ref = FirebaseDatabase.instance.ref(uid);
-      ref.get();
+      // ref.get().then((value) => print(value.value));
     }
-
-    return sh.getString('data');
+    return SharedPreferences.getInstance().then((value) => value.getString('data'));
   }
 
   static Future<bool> store(String key, String val) async {
