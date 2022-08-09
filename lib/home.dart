@@ -143,8 +143,17 @@ class _MainAppState extends State<MainApp> {
             rowStates.removeAt(i);
           });
           Storage.store('data', jsonEncode(rowStates));
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('${state.name} deleted')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('${state.name} deleted'),
+              action: SnackBarAction(
+                label: 'Undo',
+                onPressed: () {
+                  setState(() {
+                    rowStates.insert(i, state);
+                  });
+                  Storage.store('data', jsonEncode(rowStates));
+                },
+              )));
         },
         child: Card(
             child: InkWell(
