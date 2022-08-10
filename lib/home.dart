@@ -15,7 +15,6 @@ import 'rowstate.dart';
 import 'storage.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
-
 final prefs = SharedPreferences.getInstance();
 const IconData pets = IconData(0xe4a1, fontFamily: 'MaterialIcons');
 
@@ -70,12 +69,13 @@ class _HomePageAppState extends State<HomePageApp> {
   @override
   void initState() {
     super.initState();
-    if (Storage.has('data')) {
-      Storage.get('data').then((value) => setState(() {
+
+    Storage.get('data').then((value) => setState(() {
+          if (value != null) {
             jsonDecode(value.toString())
                 .forEach((item) => rowStates.add(RowState.fromJson(item)));
-          }));
-    }
+          }
+        }));
   }
 
   @override
@@ -185,8 +185,10 @@ class _HomePageAppState extends State<HomePageApp> {
       //Swipe to delete
       Widget card = Dismissible(
         key: Key(state.id),
-        direction: DismissDirection.endToStart,
+        direction: DismissDirection.horizontal,
         background: Container(
+            alignment: Alignment.centerRight, color: Colors.yellowAccent),
+        secondaryBackground: Container(
           alignment: Alignment.centerRight,
           color: Colors.redAccent,
           child: Row(
@@ -202,22 +204,35 @@ class _HomePageAppState extends State<HomePageApp> {
             ],
           ),
         ),
-        onDismissed: (direction) {
-          setState(() {
-            rowStates.removeAt(i);
-          });
-          Storage.store('data', jsonEncode(rowStates));
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text('${state.name} deleted'),
-              action: SnackBarAction(
-                label: 'Undo',
-                onPressed: () {
-                  setState(() {
-                    rowStates.insert(i, state);
-                  });
-                  Storage.store('data', jsonEncode(rowStates));
-                },
-              )));
+        confirmDismiss: (direction) async {
+          if (direction == DismissDirection.endToStart) {
+            setState(() {
+              rowStates.removeAt(i);
+            });
+            Storage.store('data', jsonEncode(rowStates));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text('${state.name} deleted'),
+                action: SnackBarAction(
+                  label: 'Undo',
+                  onPressed: () {
+                    setState(() {
+                      rowStates.insert(i, state);
+                    });
+                    Storage.store('data', jsonEncode(rowStates));
+                  },
+                )));
+            return true;
+          } else if (direction == DismissDirection.startToEnd) {
+            Future.delayed(const Duration(milliseconds: 300), () {
+              setState(() {
+                rowStates.removeAt(i);
+                state.mastered = true;
+                rowStates.add(state);
+              });
+              Storage.store('data', jsonEncode(rowStates));
+            });
+            return false;
+          }
         },
         child: Card(
             child: InkWell(
@@ -240,24 +255,39 @@ class _HomePageAppState extends State<HomePageApp> {
                           children: <Widget>[
                             Row(
                               children: [
-                                IconButton(
-                                  icon: const Icon(
-                                    pets,
-                                    size: 30,
-                                    color: Colors.green,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      state.cnt += 1;
-                                      state.logs.add(Tuple2<bool, int>(
-                                          true,
-                                          DateTime.now()
-                                              .millisecondsSinceEpoch));
-                                      Storage.store(
-                                          'data', jsonEncode(rowStates));
-                                    });
-                                  },
-                                ),
+                                state.mastered
+                                    ? IconButton(
+                                        icon: const Icon(
+                                          Icons.star,
+                                          size: 30,
+                                          color: Colors.yellowAccent,
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            state.mastered = false;
+                                            Storage.store(
+                                                'data', jsonEncode(rowStates));
+                                          });
+                                        },
+                                      )
+                                    : IconButton(
+                                        icon: const Icon(
+                                          pets,
+                                          size: 30,
+                                          color: Colors.green,
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            state.cnt += 1;
+                                            state.logs.add(Tuple2<bool, int>(
+                                                true,
+                                                DateTime.now()
+                                                    .millisecondsSinceEpoch));
+                                            Storage.store(
+                                                'data', jsonEncode(rowStates));
+                                          });
+                                        },
+                                      ),
                                 Text(
                                   state.name,
                                   style: const TextStyle(fontSize: 20),
@@ -283,7 +313,7 @@ class _HomePageAppState extends State<HomePageApp> {
                       Row(
                         children: [
                           Expanded(
-                              child: Text('${dateFmt(state)}',
+                              child: Text(dateFmt(state),
                                   style:
                                       Theme.of(context).textTheme.bodyText1)),
                           Expanded(
