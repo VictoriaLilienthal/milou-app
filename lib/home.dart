@@ -1,20 +1,18 @@
+import 'dart:convert';
 import 'dart:ui';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterfire_ui/auth.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:intl/intl.dart';
 import 'package:milou_app/chart.dart';
 import 'package:milou_app/drawer.dart';
-import 'package:tuple/tuple.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
-import 'package:intl/intl.dart';
-import 'package:flutter/gestures.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
-import 'main.dart';
+
 import 'rowstate.dart';
 import 'storage.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 final prefs = SharedPreferences.getInstance();
 const IconData pets = IconData(0xe4a1, fontFamily: 'MaterialIcons');
@@ -31,6 +29,11 @@ Widget buildNewCommandDialog(BuildContext context) {
         TextField(
           controller: textFieldController,
           decoration: const InputDecoration(hintText: "Command"),
+          onSubmitted: (value) {
+            if (textFieldController.text.isNotEmpty) {
+              Navigator.pop(context, textFieldController.text);
+            }
+          },
         ),
       ],
     ),
@@ -211,6 +214,7 @@ class _HomePageAppState extends State<HomePageApp> {
             });
             return false;
           }
+          return null;
         },
         child: Card(
             child: InkWell(
@@ -295,7 +299,7 @@ class _HomePageAppState extends State<HomePageApp> {
                                   style:
                                       Theme.of(context).textTheme.bodyText1)),
                           Expanded(
-                              child: Text('today ${todayCnt}',
+                              child: Text('today $todayCnt',
                                   style:
                                       Theme.of(context).textTheme.bodyText1)),
                           Expanded(

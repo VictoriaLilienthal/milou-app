@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Storage {
   static late SharedPreferences sh;
@@ -21,7 +21,6 @@ class Storage {
       return ref
           .once(DatabaseEventType.value)
           .then((value) => (value.snapshot.value.toString()));
-      // ref.get().then((value) => print(value.value));
     }
     return Future(() => "");
 

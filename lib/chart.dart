@@ -26,9 +26,15 @@ class SimpleTimeSeriesChart extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: charts.TimeSeriesChart(
+                defaultInteractions: true,
                 seriesList,
                 animate: true,
                 dateTimeFactory: const charts.LocalDateTimeFactory(),
+                behaviors: [
+                  charts.ChartTitle('Training logs',
+                      behaviorPosition: charts.BehaviorPosition.top),
+                  charts.SeriesLegend(),
+                ],
               ),
             )),
         floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
