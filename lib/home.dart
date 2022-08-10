@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutterfire_ui/auth.dart';
 import 'package:milou_app/chart.dart';
+import 'package:milou_app/drawer.dart';
 import 'package:tuple/tuple.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -96,30 +97,7 @@ class _HomePageAppState extends State<HomePageApp> {
               ],
             ),
           ),
-          drawer: Drawer(
-              child: ListView(
-            // Important: Remove any padding from the ListView.
-            padding: EdgeInsets.zero,
-            children: [
-              ListTile(
-                title: const Text('Profile'),
-                onTap: () {
-                  const providerConfigs = [EmailProviderConfiguration()];
-                  ProfileScreen profileScreen = ProfileScreen(
-                    providerConfigs: providerConfigs,
-                    actions: [
-                      SignedOutAction((context) {
-                        Navigator.of(context).pushReplacement(MaterialPageRoute(
-                            builder: (context) => const LandingApp()));
-                      }),
-                    ],
-                  );
-                  Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => profileScreen));
-                },
-              ),
-            ],
-          )),
+          drawer: const DrawerWidget(),
           body: TabBarView(
             children: <Widget>[
               getCommandWidgets(),

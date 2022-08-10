@@ -7,8 +7,6 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutterfire_ui/auth.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
-import 'package:flutter/cupertino.dart';
 
 import 'home.dart';
 import 'storage.dart';

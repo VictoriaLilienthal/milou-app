@@ -16,6 +16,9 @@ class SimpleTimeSeriesChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: AppBar(
+          title: const Text("Milou"),
+        ),
         body: ScrollConfiguration(
             behavior: ScrollConfiguration.of(context).copyWith(
               dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
