@@ -7,6 +7,8 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutterfire_ui/auth.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'home.dart';
 import 'storage.dart';
@@ -23,41 +25,47 @@ class LandingApp extends StatelessWidget {
 
     // This is the main app.
     return MaterialApp(
-      title: 'Milou',
-      home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        // This part connects to firebase for auth
-        builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
-          // If we're waiting for connection, show a loading spinner
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-                child: SpinKitDancingSquare(
-              color: Colors.blue,
-              size: 50.0,
-            ));
-          }
-          final String? uid = snapshot.data?.uid;
+        theme: ThemeData(
+          brightness: Brightness.light,
+        ),
+        darkTheme: ThemeData(
+          brightness: Brightness.dark,
+        ),
+        themeMode: ThemeMode.dark,
+        title: 'Milou',
+        home: StreamBuilder<User?>(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          // This part connects to firebase for auth
+          builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
+            // If we're waiting for connection, show a loading spinner
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                  child: SpinKitDancingSquare(
+                color: Colors.blue,
+                size: 50.0,
+              ));
+            }
+            final String? uid = snapshot.data?.uid;
 
-          // If user already signed in, log to firebase and take to homepage
-          if (uid != null) {
-            FirebaseAnalytics.instance.setUserId(id: uid);
-            FirebaseAnalytics.instance.logLogin(loginMethod: "email");
-            return const HomePageApp();
-          } else {
-            // If not signed in, go to signup page
-            return SignInScreen(
-              providerConfigs: providerConfigs,
-              actions: [
-                AuthStateChangeAction<SignedIn>((context, state) {
-                  Navigator.of(context).pushReplacement(MaterialPageRoute(
-                      builder: (context) => const HomePageApp()));
-                }),
-              ],
-            );
-          }
-        },
-      ),
-    );
+            // If user already signed in, log to firebase and take to homepage
+            if (uid != null) {
+              FirebaseAnalytics.instance.setUserId(id: uid);
+              FirebaseAnalytics.instance.logLogin(loginMethod: "email");
+              return const HomePageApp();
+            } else {
+              // If not signed in, go to signup page
+              return SignInScreen(
+                providerConfigs: providerConfigs,
+                actions: [
+                  AuthStateChangeAction<SignedIn>((context, state) {
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(
+                        builder: (context) => const HomePageApp()));
+                  }),
+                ],
+              );
+            }
+          },
+        ));
   }
 }
 

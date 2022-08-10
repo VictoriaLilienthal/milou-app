@@ -13,6 +13,8 @@ import 'package:uuid/uuid.dart';
 import 'main.dart';
 import 'rowstate.dart';
 import 'storage.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+
 
 final prefs = SharedPreferences.getInstance();
 const IconData pets = IconData(0xe4a1, fontFamily: 'MaterialIcons');
@@ -78,79 +80,76 @@ class _HomePageAppState extends State<HomePageApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        title: 'Milou App',
-        home: DefaultTabController(
-            length: 2,
-            child: Scaffold(
-              appBar: AppBar(
-                title: Text("Milou"),
-                bottom: const TabBar(
-                  tabs: <Widget>[
-                    Tab(
-                      text: "Train",
-                    ),
-                    Tab(
-                      text: "Goal",
-                    ),
-                  ],
+    return DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text("Milou"),
+            bottom: const TabBar(
+              tabs: <Widget>[
+                Tab(
+                  text: "Train",
+                ),
+                Tab(
+                  text: "Goal",
+                ),
+              ],
+            ),
+          ),
+          drawer: Drawer(
+              child: ListView(
+            // Important: Remove any padding from the ListView.
+            padding: EdgeInsets.zero,
+            children: [
+              ListTile(
+                title: const Text('Profile'),
+                onTap: () {
+                  const providerConfigs = [EmailProviderConfiguration()];
+                  ProfileScreen profileScreen = ProfileScreen(
+                    providerConfigs: providerConfigs,
+                    actions: [
+                      SignedOutAction((context) {
+                        Navigator.of(context).pushReplacement(MaterialPageRoute(
+                            builder: (context) => const LandingApp()));
+                      }),
+                    ],
+                  );
+                  Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => profileScreen));
+                },
+              ),
+            ],
+          )),
+          body: TabBarView(
+            children: <Widget>[
+              getCommandWidgets(),
+              const Center(
+                child: SpinKitDancingSquare(
+                  color: Colors.blue,
+                  size: 50.0,
                 ),
               ),
-              drawer: Drawer(
-                  child: ListView(
-                // Important: Remove any padding from the ListView.
-                padding: EdgeInsets.zero,
-                children: [
-                  ListTile(
-                    title: const Text('Profile'),
-                    onTap: () {
-                      const providerConfigs = [EmailProviderConfiguration()];
-                      ProfileScreen profileScreen = ProfileScreen(
-                        providerConfigs: providerConfigs,
-                        actions: [
-                          SignedOutAction((context) {
-                            Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                    builder: (context) => const LandingApp()));
-                          }),
-                        ],
-                      );
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => profileScreen));
-                    },
-                  ),
-                ],
-              )),
-              body: TabBarView(
-                children: <Widget>[
-                  getCommandWidgets(),
-                  const Center(
-                    child: SpinKitDancingSquare(
-                      color: Colors.blue,
-                      size: 50.0,
-                    ),
-                  ),
-                ],
-              ),
-              floatingActionButton: FloatingActionButton(
-                onPressed: () {
-                  Future<String?> str = showDialog(
-                      context: context,
-                      builder: (BuildContext context) =>
-                          buildNewCommandDialog(context));
-                  str.then((value) => setState(() {
-                        if (value != null) {
-                          rowStates.add(
-                              RowState(const Uuid().v4(), value.toString()));
-                          Storage.store('data', jsonEncode(rowStates));
-                        }
-                      }));
-                },
-                tooltip: 'Add new command',
-                child: const Icon(Icons.add),
-              ),
-              floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
-            )));
+            ],
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              Future<String?> str = showDialog(
+                  context: context,
+                  builder: (BuildContext context) =>
+                      buildNewCommandDialog(context));
+              str.then((value) => setState(() {
+                    if (value != null) {
+                      rowStates
+                          .add(RowState(const Uuid().v4(), value.toString()));
+                      Storage.store('data', jsonEncode(rowStates));
+                    }
+                  }));
+            },
+            tooltip: 'Add new command',
+            child: const Icon(Icons.add),
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
+        ));
   }
 
   static String dateFmt(RowState state) {
