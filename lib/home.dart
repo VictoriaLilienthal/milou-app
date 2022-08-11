@@ -141,7 +141,7 @@ class _HomePageAppState extends State<HomePageApp> {
         key: Key(state.id),
         direction: DismissDirection.horizontal,
         background: Container(
-            alignment: Alignment.centerRight, color: Colors.yellowAccent),
+            alignment: Alignment.centerRight, color: Colors.green),
         secondaryBackground: Container(
           alignment: Alignment.centerRight,
           color: Colors.redAccent,
@@ -230,7 +230,7 @@ class _HomePageAppState extends State<HomePageApp> {
                                         icon: const Icon(
                                           Icons.star,
                                           size: 30,
-                                          color: Colors.yellowAccent,
+                                          color: Colors.green,
                                         ),
                                         onPressed: () {
                                           setState(() {
