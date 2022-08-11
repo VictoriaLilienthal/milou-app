@@ -5,12 +5,14 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
-import 'package:milou_app/chart.dart';
-import 'package:milou_app/drawer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
+import 'chart.dart';
+import 'drawer.dart';
+import 'mastered_prompt_dialog.dart';
+import 'new_command_widgets.dart';
 import 'rowstate.dart';
 import 'storage.dart';
 
@@ -19,43 +21,12 @@ const IconData pets = IconData(0xe4a1, fontFamily: 'MaterialIcons');
 
 // This is a widget for new command window
 Widget buildNewCommandDialog(BuildContext context) {
-  final textFieldController = TextEditingController();
-  return AlertDialog(
-    title: const Text('New Command'),
-    content: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        TextField(
-          controller: textFieldController,
-          decoration: const InputDecoration(hintText: "Command"),
-          onSubmitted: (value) {
-            if (textFieldController.text.isNotEmpty) {
-              Navigator.pop(context, textFieldController.text);
-            }
-          },
-        ),
-      ],
-    ),
-    actions: <Widget>[
-      IconButton(
-        icon: const Icon(Icons.check),
-        color: Colors.green,
-        onPressed: () {
-          if (textFieldController.text.isNotEmpty) {
-            Navigator.pop(context, textFieldController.text);
-          }
-        },
-      ),
-      IconButton(
-        icon: const Icon(Icons.cancel),
-        color: Colors.red,
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
-      ),
-    ],
-  );
+  return const AddNewCommandWidget();
+}
+
+// This is a widget for new command window
+Widget buildMarkStarredDialog(BuildContext context) {
+  return const MasteredPromptDialog();
 }
 
 class HomePageApp extends StatefulWidget {
@@ -113,19 +84,7 @@ class _HomePageAppState extends State<HomePageApp> {
             ],
           ),
           floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              Future<String?> str = showDialog(
-                  context: context,
-                  builder: (BuildContext context) =>
-                      buildNewCommandDialog(context));
-              str.then((value) => setState(() {
-                    if (value != null) {
-                      rowStates
-                          .add(RowState(const Uuid().v4(), value.toString()));
-                      Storage.store('data', jsonEncode(rowStates));
-                    }
-                  }));
-            },
+            onPressed: showAddNewCommandDialog,
             tooltip: 'Add new command',
             child: const Icon(Icons.add),
           ),
@@ -133,6 +92,7 @@ class _HomePageAppState extends State<HomePageApp> {
         ));
   }
 
+  // Gets the display date format for "last performed" text
   static String dateFmt(RowState state) {
     if (state.logs.isEmpty) {
       return "Never Performed";
@@ -147,6 +107,19 @@ class _HomePageAppState extends State<HomePageApp> {
       }
       return "Last performed ${(DateFormat.yMMMd().format(lastDate))}";
     }
+  }
+
+  // Show the add new command dialog box
+  void showAddNewCommandDialog() async {
+    Future<String?> str = showDialog(
+        context: context,
+        builder: (BuildContext context) => buildNewCommandDialog(context));
+    str.then((value) => setState(() {
+          if (value != null) {
+            rowStates.add(RowState(const Uuid().v4(), value.toString()));
+            Storage.store('data', jsonEncode(rowStates));
+          }
+        }));
   }
 
   Widget getCommandWidgets() {
@@ -224,6 +197,21 @@ class _HomePageAppState extends State<HomePageApp> {
                     state.logs.add(Tuple2<bool, int>(
                         true, DateTime.now().millisecondsSinceEpoch));
                     Storage.store('data', jsonEncode(rowStates));
+
+                    if (state.logs.length == 60 && !state.mastered) {
+                      Future<bool?> b = showDialog(
+                          context: context,
+                          builder: (BuildContext context) =>
+                              buildMarkStarredDialog(context));
+                      b.then((value) {
+                        if (value != null && value) {
+                          setState(() {
+                            state.mastered = true;
+                          });
+                          Storage.store('data', jsonEncode(rowStates));
+                        }
+                      });
+                    }
                   });
                 },
                 child: Padding(

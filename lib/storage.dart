@@ -23,7 +23,6 @@ class Storage {
           .then((value) => (value.snapshot.value.toString()));
     }
     return Future(() => "");
-
     // return SharedPreferences.getInstance()
     //     .then((value) => value.getString('data'));
   }
