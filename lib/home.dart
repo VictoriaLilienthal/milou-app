@@ -1,24 +1,21 @@
-import 'dart:convert';
 import 'dart:ui';
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tuple/tuple.dart';
-import 'package:uuid/uuid.dart';
 
 import 'chart.dart';
 import 'drawer.dart';
 import 'mastered_prompt_dialog.dart';
 import 'new_command_widgets.dart';
-import 'rowstate.dart';
-import 'storage.dart';
+import 'skill.dart';
 
 final prefs = SharedPreferences.getInstance();
 const IconData pets = IconData(0xe4a1, fontFamily: 'MaterialIcons');
-
+const Duration secondDuration = Duration(milliseconds: 1000);
+const Duration halfSecond = Duration(milliseconds: 1000);
 // This is a widget for new command window
 Widget buildNewCommandDialog(BuildContext context) {
   return const AddNewCommandWidget();
@@ -39,18 +36,32 @@ class HomePageApp extends StatefulWidget {
 }
 
 class _HomePageAppState extends State<HomePageApp> {
-  List<RowState> rowStates = <RowState>[];
+  List<Skill> rowStates = <Skill>[];
+  bool _loading = false;
 
   @override
   void initState() {
     super.initState();
-
-    Storage.get('data').then((value) => setState(() {
-          if (value != null) {
-            jsonDecode(value.toString())
-                .forEach((item) => rowStates.add(RowState.fromJson(item)));
+    _loading = true;
+    DB().getAllSkills().then((value) {
+      setState(() {
+        _loading = false;
+        rowStates.addAll(value);
+        rowStates.sort((a, b) {
+          if (a.order < b.order) {
+            return -1;
+          } else if (a.order > b.order) {
+            return 1;
           }
-        }));
+          return 0;
+        });
+        for (int i = 0; i < rowStates.length; i++) {
+          if (!isToday(rowStates[i].lastActivity)) {
+            rowStates[i].todayCnt = 0;
+          }
+        }
+      });
+    });
   }
 
   @override
@@ -72,7 +83,7 @@ class _HomePageAppState extends State<HomePageApp> {
             ),
           ),
           drawer: const DrawerWidget(),
-          body: TabBarView(
+          body: getBody(TabBarView(
             children: <Widget>[
               getCommandWidgets(),
               const Center(
@@ -82,7 +93,7 @@ class _HomePageAppState extends State<HomePageApp> {
                 ),
               ),
             ],
-          ),
+          )),
           floatingActionButton: FloatingActionButton(
             onPressed: showAddNewCommandDialog,
             tooltip: 'Add new command',
@@ -92,17 +103,24 @@ class _HomePageAppState extends State<HomePageApp> {
         ));
   }
 
-  // Gets the display date format for "last performed" text
-  static String dateFmt(RowState state) {
-    if (state.logs.isEmpty) {
+  static bool isToday(int date) {
+    DateTime lastDate = DateTime.fromMillisecondsSinceEpoch(date);
+    DateTime today = DateTime.now();
+    if (lastDate.day == today.day &&
+        lastDate.month == today.month &&
+        lastDate.year == today.year) {
+      return true;
+    }
+    return false;
+  }
+
+  static String dateFmt(Skill state) {
+    if (state.cnt == 0 || state.lastActivity == 0) {
       return "Never Performed";
     } else {
       DateTime lastDate =
-          DateTime.fromMillisecondsSinceEpoch(state.logs.last.item2);
-
-      if (lastDate.day == DateTime.now().day &&
-          lastDate.month == DateTime.now().month &&
-          lastDate.year == DateTime.now().year) {
+          DateTime.fromMillisecondsSinceEpoch(state.lastActivity);
+      if (isToday(state.lastActivity)) {
         return "Last performed today";
       }
       return "Last performed ${(DateFormat.yMMMd().format(lastDate))}";
@@ -114,34 +132,46 @@ class _HomePageAppState extends State<HomePageApp> {
     Future<String?> str = showDialog(
         context: context,
         builder: (BuildContext context) => buildNewCommandDialog(context));
-    str.then((value) => setState(() {
-          if (value != null) {
-            rowStates.add(RowState(const Uuid().v4(), value.toString()));
-            Storage.store('data', jsonEncode(rowStates));
-          }
-        }));
+
+    str.then((value) {
+      if (value != null && !checkDuplicateSkill(value)) {
+        Skill s = Skill(value);
+
+        DB().addNewSkill(s).then((value) {
+          setState(
+            () {
+              rowStates.add(s);
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('New skill ${s.name} Added'),
+                  duration: secondDuration));
+            },
+          );
+        }, onError: (e) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text(
+                  "Oops, that didn't work as expected. Please try again")));
+        });
+      }
+    });
   }
 
   Widget getCommandWidgets() {
     List<Widget> list = <Widget>[];
     for (var i = 0; i < rowStates.length; i++) {
-      RowState state = rowStates[i];
-      int todayCnt = state.logs.where((f) {
-        DateTime d = DateTime.fromMillisecondsSinceEpoch(f.item2);
-        if (d.day == DateTime.now().day &&
-            d.month == DateTime.now().month &&
-            d.year == DateTime.now().year) {
-          return true;
-        }
-        return false;
-      }).length;
-
+      Skill state = rowStates[i];
+      int todayCnt = state.todayCnt;
       //Swipe to delete
       Widget card = Dismissible(
-        key: Key(state.id),
+        key: Key(state.name),
         direction: DismissDirection.horizontal,
         background: Container(
-            alignment: Alignment.centerRight, color: Colors.green),
+            alignment: Alignment.centerLeft,
+            color: Colors.green,
+            child: const Icon(
+              Icons.star,
+              color: Colors.white,
+              size: 30,
+            )),
         secondaryBackground: Container(
           alignment: Alignment.centerRight,
           color: Colors.redAccent,
@@ -160,30 +190,56 @@ class _HomePageAppState extends State<HomePageApp> {
         ),
         confirmDismiss: (direction) async {
           if (direction == DismissDirection.endToStart) {
+            String name = rowStates[i].name;
+
             setState(() {
               rowStates.removeAt(i);
             });
-            Storage.store('data', jsonEncode(rowStates));
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text('${state.name} deleted'),
-                action: SnackBarAction(
-                  label: 'Undo',
-                  onPressed: () {
-                    setState(() {
-                      rowStates.insert(i, state);
-                    });
-                    Storage.store('data', jsonEncode(rowStates));
-                  },
-                )));
+            _loading = false;
+            DB().delete(name).then((value) {
+              _loading = true;
+              ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('${state.name} deleted')));
+              DB()
+                  .syncOrder(rowStates)
+                  .then((value) => setState(() => {_loading = false}));
+            });
+
+            // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            //     content: Text('${state.name} deleted'),
+            //     action: SnackBarAction(
+            //       label: 'Undo',
+            //       onPressed: () {
+            //         setState(() {
+            //           rowStates.insert(i, state);
+            //         });
+            //         // TODO : Restore the data
+            //       },
+            //     )));
             return true;
           } else if (direction == DismissDirection.startToEnd) {
             Future.delayed(const Duration(milliseconds: 300), () {
               setState(() {
-                rowStates.removeAt(i);
                 state.mastered = true;
-                rowStates.add(state);
+                _loading = true;
               });
-              Storage.store('data', jsonEncode(rowStates));
+
+              if (i != rowStates.length - 1) {
+                rowStates.removeAt(i);
+                rowStates.add(state);
+              }
+
+              DB().updateSkill(state).then((value) => {
+                    DB().syncOrder(rowStates).then((value) {
+                      setState(() {
+                        _loading = false;
+                      });
+
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('${state.name} mastered'),
+                          duration: halfSecond));
+                    })
+                  });
             });
             return false;
           }
@@ -194,24 +250,24 @@ class _HomePageAppState extends State<HomePageApp> {
                 onTap: () {
                   setState(() {
                     state.cnt += 1;
-                    state.logs.add(Tuple2<bool, int>(
-                        true, DateTime.now().millisecondsSinceEpoch));
-                    Storage.store('data', jsonEncode(rowStates));
-
-                    if (state.logs.length == 60 && !state.mastered) {
-                      Future<bool?> b = showDialog(
-                          context: context,
-                          builder: (BuildContext context) =>
-                              buildMarkStarredDialog(context));
-                      b.then((value) {
-                        if (value != null && value) {
-                          setState(() {
-                            state.mastered = true;
-                          });
-                          Storage.store('data', jsonEncode(rowStates));
-                        }
-                      });
-                    }
+                    state.todayCnt += 1;
+                    state.lastActivity = DateTime.now().millisecondsSinceEpoch;
+                    DB().addClick(state.name);
+                    // TODO : fix counting for new model
+                    // if (state.logs.length == 60 && !state.mastered) {
+                    //   Future<bool?> b = showDialog(
+                    //       context: context,
+                    //       builder: (BuildContext context) =>
+                    //           buildMarkStarredDialog(context));
+                    //   b.then((value) {
+                    //     if (value != null && value) {
+                    //       setState(() {
+                    //         state.mastered = true;
+                    //       });
+                    //       Storage.store('data', jsonEncode(rowStates));
+                    //     }
+                    //   });
+                    // }
                   });
                 },
                 child: Padding(
@@ -235,9 +291,13 @@ class _HomePageAppState extends State<HomePageApp> {
                                         onPressed: () {
                                           setState(() {
                                             state.mastered = false;
-                                            Storage.store(
-                                                'data', jsonEncode(rowStates));
+                                            _loading = true;
                                           });
+                                          DB()
+                                              .updateSkill(state)
+                                              .then((value) => setState(() {
+                                                    _loading = false;
+                                                  }));
                                         },
                                       )
                                     : IconButton(
@@ -246,17 +306,7 @@ class _HomePageAppState extends State<HomePageApp> {
                                           size: 30,
                                           color: Colors.green,
                                         ),
-                                        onPressed: () {
-                                          setState(() {
-                                            state.cnt += 1;
-                                            state.logs.add(Tuple2<bool, int>(
-                                                true,
-                                                DateTime.now()
-                                                    .millisecondsSinceEpoch));
-                                            Storage.store(
-                                                'data', jsonEncode(rowStates));
-                                          });
-                                        },
+                                        onPressed: () {},
                                       ),
                                 Text(
                                   state.name,
@@ -271,10 +321,12 @@ class _HomePageAppState extends State<HomePageApp> {
                                 color: Colors.blue,
                               ),
                               onPressed: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) =>
-                                        SimpleTimeSeriesChart.fromLogs(
-                                            state.logs)));
+                                DB().getLogsForSkill(state.name).then((value) =>
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                SimpleTimeSeriesChart.fromLogs(
+                                                    value))));
                               },
                             )
                           ],
@@ -300,6 +352,8 @@ class _HomePageAppState extends State<HomePageApp> {
                   ),
                 ))),
       );
+
+
       list.add(card);
     }
 
@@ -319,11 +373,49 @@ class _HomePageAppState extends State<HomePageApp> {
                 if (oldIndex < newIndex) {
                   newIndex -= 1;
                 }
-                final RowState element = rowStates.removeAt(oldIndex);
+                final Skill element = rowStates.removeAt(oldIndex);
                 rowStates.insert(newIndex, element);
-                Storage.store('data', jsonEncode(rowStates));
+                _loading = true;
+                DB()
+                    .syncOrder(rowStates)
+                    .then((value) => setState(() => {_loading = false}));
               });
             },
             children: list));
+  }
+
+  bool checkDuplicateSkill(String value) {
+    for (Skill s in rowStates) {
+      if (s.name.compareTo(value) == 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Widget getBody(Widget child) {
+    if (_loading) {
+      return Stack(
+        children: [
+          child,
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 0.1, sigmaY: 0.1),
+            child: const Opacity(
+              opacity: 0.3,
+              child: ModalBarrier(dismissible: false, color: Colors.grey),
+            ),
+          ),
+          const Center(
+              child: Center(
+            child: SpinKitDancingSquare(
+              color: Colors.blue,
+              size: 50.0,
+            ),
+          )),
+        ],
+      );
+    } else {
+      return child;
+    }
   }
 }

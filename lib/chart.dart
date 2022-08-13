@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
+import 'skill.dart';
 import 'package:tuple/tuple.dart';
 
 class SimpleTimeSeriesChart extends StatelessWidget {
@@ -9,8 +10,8 @@ class SimpleTimeSeriesChart extends StatelessWidget {
 
   const SimpleTimeSeriesChart(this.seriesList, {super.key});
 
-  factory SimpleTimeSeriesChart.fromLogs(List<Tuple2<bool, int>> logs) {
-    return SimpleTimeSeriesChart(_createChartDataFromLogs(logs));
+  factory SimpleTimeSeriesChart.fromLogs(Logs logs) {
+    return SimpleTimeSeriesChart(_createChartDataFromLogs(logs.logs));
   }
 
   @override
@@ -48,7 +49,7 @@ class SimpleTimeSeriesChart extends StatelessWidget {
   }
 
   static List<charts.Series<TimeSeriesData, DateTime>> _createChartDataFromLogs(
-      List<Tuple2<bool, int>> logs) {
+      List<int> logs) {
     final Map counts = {};
     Duration day = const Duration(days: 1);
     DateTime today = DateTime.now();
@@ -58,8 +59,8 @@ class SimpleTimeSeriesChart extends StatelessWidget {
       today = today.subtract(day);
     }
 
-    for (var e in logs) {
-      DateTime d = DateTime.fromMillisecondsSinceEpoch(e.item2);
+    for (var i in logs) {
+      DateTime d = DateTime.fromMillisecondsSinceEpoch(i);
       DateTime t = DateTime(d.year, d.month, d.day);
       if (counts.containsKey(t)) {
         counts[t] += 1;

@@ -1,28 +1,8 @@
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intl/intl.dart';
-
-import 'rowstate.dart';
 
 class DB {
-  Future<Iterable<Object?>> getSkills() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      String uid = currentUser.uid;
-      CollectionReference collection =
-          FirebaseFirestore.instance.collection('user/$uid/skills');
-
-      return collection.get().then((value) => value.docs.map((element) {
-            return element.data();
-          }));
-    } else {
-      return Future(() => []);
-    }
-  }
-
-  void saveSkills(List<RowState> rowState) async {
+  Future saveSkills(List<Skill> rowState) async {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     if (currentUser != null) {
@@ -30,42 +10,51 @@ class DB {
       CollectionReference skillsCollection =
           FirebaseFirestore.instance.collection('user/$uid/skills');
 
-      CollectionReference logsCollection =
-          FirebaseFirestore.instance.collection('user/$uid/logs');
-
       final skillBatch = FirebaseFirestore.instance.batch();
-      final logsBatch = FirebaseFirestore.instance.batch();
 
       for (int i = 0; i < rowState.length; i++) {
-        final RowState state = rowState[i];
-        Skill s = Skill(state.name);
-        s.cnt = state.cnt;
-        s.todayCnt = 0;
-        s.cnt = state.logs.length;
+        Skill s = rowState[i];
         s.order = i;
-
-        Logs l = Logs();
-        l.logs = state.logs.map((e) => e.item2).toList();
-
         skillBatch.set(skillsCollection.doc(s.name), s.toJson());
-        logsBatch.set(logsCollection.doc(s.name), l.toJson());
       }
-
-      skillBatch.commit();
-      logsBatch.commit();
+      return skillBatch.commit();
     }
   }
 
-  Future<Future<QuerySnapshot<Object?>>> getLogsForSkill(String task) async {
+  Future syncOrder(List<Skill> rowState) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      String uid = currentUser.uid;
+      CollectionReference skillsCollection =
+      FirebaseFirestore.instance.collection('user/$uid/skills');
+
+      final skillBatch = FirebaseFirestore.instance.batch();
+
+      for (int i = 0; i < rowState.length; i++) {
+        Skill s = rowState[i];
+        s.order = i;
+        skillBatch.update(skillsCollection.doc(s.name), {'order': i});
+      }
+
+      return skillBatch.commit();
+    }
+  }
+
+
+  Future<Logs> getLogsForSkill(String task) async {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     if (currentUser != null) {
       String uid = currentUser.uid;
 
-      CollectionReference logsCollection =
-          FirebaseFirestore.instance.collection('user/$uid/logs/$task');
+      CollectionReference logs = FirebaseFirestore.instance
+          .collection('user/$uid/logs')
+          .withConverter<Logs>(
+              fromFirestore: (snapshot, _) => Logs.fromJson(snapshot.data()!),
+              toFirestore: (logs, _) => logs.toJson());
 
-      return logsCollection.get();
+      return (await logs.doc(task).get()).data() as Logs;
     } else {
       throw Exception("User logged out");
     }
@@ -89,6 +78,26 @@ class DB {
     }
   }
 
+  Future addNewSkill(Skill s) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      String uid = currentUser.uid;
+      DocumentReference skillsCollection =
+          FirebaseFirestore.instance.collection('user/$uid/skills').doc(s.name);
+
+      DocumentReference logsCollection =
+          FirebaseFirestore.instance.collection('user/$uid/logs').doc(s.name);
+
+      return FirebaseFirestore.instance.runTransaction((transaction) async {
+        transaction.set(skillsCollection, s.toJson());
+        transaction.set(logsCollection, Logs().toJson());
+      });
+    } else {
+      throw Exception("User logged out");
+    }
+  }
+
   void saveSkill(Skill s, Logs l) async {
     final currentUser = FirebaseAuth.instance.currentUser;
 
@@ -102,6 +111,18 @@ class DB {
 
       skillsCollection.update(s.toJson());
       logsCollection.update(s.toJson());
+    } else {
+      throw Exception("User logged out");
+    }
+  }
+
+  Future updateSkill(Skill s) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      String uid = currentUser.uid;
+      DocumentReference skillsCollection =
+          FirebaseFirestore.instance.collection('user/$uid/skills').doc(s.name);
+      return skillsCollection.update(s.toJson());
     } else {
       throw Exception("User logged out");
     }
@@ -122,7 +143,7 @@ class DB {
         transaction.update(skillDoc, {
           'cnt': FieldValue.increment(1),
           'todayCnt': FieldValue.increment(1),
-          'today': DateFormat.yMd().format(DateTime.now())
+          'lastActivity': DateTime.now().millisecondsSinceEpoch
         });
         transaction.update(skillLogsDoc, {
           'logs': FieldValue.arrayUnion([DateTime.now().millisecondsSinceEpoch])
@@ -133,41 +154,41 @@ class DB {
     }
   }
 
-  void syncStorage(List<RowState> rowState) async {
-    final currentUser = FirebaseAuth.instance.currentUser;
+  // void syncStorage(List<RowState> rowState) async {
+  //   final currentUser = FirebaseAuth.instance.currentUser;
+  //
+  //   if (currentUser != null) {
+  //     String uid = currentUser.uid;
+  //     CollectionReference skillsCollection =
+  //         FirebaseFirestore.instance.collection('user/$uid/skills');
+  //
+  //     CollectionReference logsCollection =
+  //         FirebaseFirestore.instance.collection('user/$uid/logs');
+  //
+  //     final skillBatch = FirebaseFirestore.instance.batch();
+  //     final logsBatch = FirebaseFirestore.instance.batch();
+  //
+  //     for (int i = 0; i < rowState.length; i++) {
+  //       final RowState state = rowState[i];
+  //       Skill s = Skill(state.name);
+  //       s.cnt = state.cnt;
+  //       s.todayCnt = 0;
+  //       s.cnt = state.logs.length;
+  //       s.order = i;
+  //
+  //       Logs l = Logs();
+  //       l.logs = state.logs.map((e) => e.item2).toList();
+  //
+  //       skillBatch.set(skillsCollection.doc(s.name), s.toJson());
+  //       logsBatch.set(logsCollection.doc(s.name), l.toJson());
+  //     }
+  //
+  //     skillBatch.commit();
+  //     logsBatch.commit();
+  //   }
+  // }
 
-    if (currentUser != null) {
-      String uid = currentUser.uid;
-      CollectionReference skillsCollection =
-          FirebaseFirestore.instance.collection('user/$uid/skills');
-
-      CollectionReference logsCollection =
-          FirebaseFirestore.instance.collection('user/$uid/logs');
-
-      final skillBatch = FirebaseFirestore.instance.batch();
-      final logsBatch = FirebaseFirestore.instance.batch();
-
-      for (int i = 0; i < rowState.length; i++) {
-        final RowState state = rowState[i];
-        Skill s = Skill(state.name);
-        s.cnt = state.cnt;
-        s.todayCnt = 0;
-        s.cnt = state.logs.length;
-        s.order = i;
-
-        Logs l = Logs();
-        l.logs = state.logs.map((e) => e.item2).toList();
-
-        skillBatch.set(skillsCollection.doc(s.name), s.toJson());
-        logsBatch.set(logsCollection.doc(s.name), l.toJson());
-      }
-
-      skillBatch.commit();
-      logsBatch.commit();
-    }
-  }
-
-  void delete(String name) async {
+  Future delete(String name) async {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     if (currentUser != null) {
@@ -192,7 +213,7 @@ class Skill {
   String name;
   int cnt;
   bool mastered;
-  String today;
+  int lastActivity;
   int todayCnt;
   int order;
 
@@ -200,14 +221,14 @@ class Skill {
       [this.cnt = 0,
       this.mastered = false,
       this.todayCnt = 0,
-      this.today = "",
+      this.lastActivity = 0,
       this.order = 0]);
 
   Map<String, dynamic> toJson() => {
         'name': name,
         'cnt': cnt,
         'mastered': mastered,
-        'today': today,
+        'lastActivity': lastActivity,
         'todayCnt': todayCnt,
         'order': order
       };
@@ -217,7 +238,7 @@ class Skill {
         cnt = json['cnt'],
         mastered = json['mastered'],
         todayCnt = json['todayCnt'],
-        today = json['today'],
+        lastActivity = json['lastActivity'],
         order = json['order'];
 
   factory Skill.fromFirestore(
@@ -229,7 +250,7 @@ class Skill {
 
     s.cnt = data?['cnt'];
     s.mastered = data?['mastered'];
-    s.today = data?['today'];
+    s.lastActivity = data?['lastActivity'];
     s.todayCnt = data?['todayCnt'];
     s.order = data?['order'];
 
@@ -241,7 +262,7 @@ class Skill {
       'name': name,
       'cnt': cnt,
       'mastered': mastered,
-      'today': today,
+      'today': lastActivity,
       'todayCnt': todayCnt,
       'order': order
     };
@@ -257,5 +278,31 @@ class Logs {
         'logs': logs,
       };
 
-  Logs.fromJson(Map<String, dynamic> json) : logs = json['logs'];
+  Logs.fromJson(Map<String, dynamic> json) : logs = tryParseLogs(json);
+
+  static List<int> tryParseLogs(Map<String, dynamic> json) {
+    try {
+      return (json['logs'] as List<dynamic>).map((e) => e as int).toList();
+    } catch (e) {
+      print("Invalid logs value ${json['logs']}");
+      return [];
+    }
+  }
+
+  factory Logs.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+    SnapshotOptions? options,
+  ) {
+    final data = snapshot.data();
+    Logs l = Logs();
+
+    l.logs = (data?['logs'] as List<dynamic>).map((e) => e as int).toList();
+    return l;
+  }
+
+  Map<String, Object?> toFirestore() {
+    return {
+      'logs': logs,
+    };
+  }
 }
