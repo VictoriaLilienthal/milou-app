@@ -13,7 +13,7 @@ class CardWidget extends StatefulWidget {
   final Function onMastered;
 
   const CardWidget(this.state,
-      {Key? key,
+      {required Key? key,
       required this.showChart,
       required this.onUnmastered,
       required this.onDelete,
@@ -22,39 +22,54 @@ class CardWidget extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() => _CardWidgetState();
+
+  static bool isToday(int date) {
+    DateTime lastDate = DateTime.fromMillisecondsSinceEpoch(date);
+    DateTime today = DateTime.now();
+    if (lastDate.day == today.day &&
+        lastDate.month == today.month &&
+        lastDate.year == today.year) {
+      return true;
+    }
+    return false;
+  }
 }
 
 class _CardWidgetState extends State<CardWidget> {
+  bool isBig = false;
+
   @override
   Widget build(BuildContext context) {
     Skill state = widget.state;
+
     return Dismissible(
       key: Key(state.name),
       direction: DismissDirection.horizontal,
       background: Container(
           alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.only(left: 20),
           color: Colors.green,
-          child: const Icon(
-            Icons.star,
-            color: Colors.white,
-            size: 30,
+          child: AnimatedSize(
+            alignment: Alignment.center,
+            duration: const Duration(milliseconds: 100),
+            child: Icon(
+              Icons.star,
+              color: Colors.white,
+              size: isBig ? 45 : 30,
+            ),
           )),
       secondaryBackground: Container(
-        alignment: Alignment.centerRight,
-        color: Colors.redAccent,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: const [
-            Text("Delete ",
-                style: TextStyle(fontSize: 30, color: Colors.white)),
-            Icon(
+          padding: const EdgeInsets.only(right: 20),
+          alignment: Alignment.centerRight,
+          color: Colors.redAccent,
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 100),
+            child: Icon(
               Icons.delete,
-              size: 30,
               color: Colors.white,
-            )
-          ],
-        ),
-      ),
+              size: isBig ? 45 : 30,
+            ),
+          )),
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.endToStart) {
           widget.onDelete();
@@ -64,6 +79,17 @@ class _CardWidgetState extends State<CardWidget> {
           return false;
         }
         return null;
+      },
+      onUpdate: (details) {
+        if (details.reached) {
+          setState(() {
+            isBig = true;
+          });
+        } else {
+          setState(() {
+            isBig = false;
+          });
+        }
       },
       child: Card(
           child: InkWell(
@@ -93,7 +119,7 @@ class _CardWidgetState extends State<CardWidget> {
                                         size: 30,
                                         color: Colors.green,
                                       ),
-                                      onPressed: widget.onUnmastered())
+                                      onPressed: () => {widget.onUnmastered()})
                                   : IconButton(
                                       icon: const Icon(
                                         pets,
@@ -138,24 +164,13 @@ class _CardWidgetState extends State<CardWidget> {
     );
   }
 
-  static bool isToday(int date) {
-    DateTime lastDate = DateTime.fromMillisecondsSinceEpoch(date);
-    DateTime today = DateTime.now();
-    if (lastDate.day == today.day &&
-        lastDate.month == today.month &&
-        lastDate.year == today.year) {
-      return true;
-    }
-    return false;
-  }
-
   static String dateFmt(Skill state) {
     if (state.cnt == 0 || state.lastActivity == 0) {
       return "Never Performed";
     } else {
       DateTime lastDate =
           DateTime.fromMillisecondsSinceEpoch(state.lastActivity);
-      if (isToday(state.lastActivity)) {
+      if (CardWidget.isToday(state.lastActivity)) {
         return "Last performed today";
       }
       return "Last performed ${(DateFormat.yMMMd().format(lastDate))}";

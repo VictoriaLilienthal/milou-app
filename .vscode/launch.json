@@ -10,46 +10,10 @@
             "type": "dart",
             "flutterMode": "debug",
             "args": [
+                "-d",
+                "chrome",
                 "--web-port=49430"
             ]
-          },
-        {
-            "name": "milou_app",
-            "request": "launch",
-            "type": "dart",
-
         },
-        {
-            "name": "milou_app (profile mode)",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "profile"
-        },
-        {
-            "name": "milou_app (release mode)",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "release"
-        },
-        {
-            "name": "auth_service",
-            "cwd": "packages/auth_service",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "auth_service (profile mode)",
-            "cwd": "packages/auth_service",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "profile"
-        },
-        {
-            "name": "auth_service (release mode)",
-            "cwd": "packages/auth_service",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "release"
-        }
     ]
 }

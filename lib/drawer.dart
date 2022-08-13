@@ -10,8 +10,13 @@ class DrawerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Drawer(
         child: ListView(
-      padding: EdgeInsets.zero,
       children: [
+        const DrawerHeader(
+          decoration: BoxDecoration(
+            color: Colors.blue,
+          ),
+          child: Text('Milou'),
+        ),
         ListTile(
           title: const Text('Profile'),
           onTap: () {

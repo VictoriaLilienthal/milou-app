@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class AddNewCommandWidget extends StatelessWidget {
-  const AddNewCommandWidget({
-    Key? key,
-  }) : super(key: key);
+  final Function buttonDisabled;
+
+  const AddNewCommandWidget(this.buttonDisabled, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +30,8 @@ class AddNewCommandWidget extends StatelessWidget {
           icon: const Icon(Icons.check),
           color: Colors.green,
           onPressed: () {
-            if (textFieldController.text.isNotEmpty) {
+            if (textFieldController.text.isNotEmpty ||
+                !buttonDisabled(textFieldController.text)) {
               Navigator.pop(context, textFieldController.text);
             }
           },

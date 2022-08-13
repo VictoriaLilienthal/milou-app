@@ -2,8 +2,8 @@ import 'dart:ui';
 
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
+
 import 'skill.dart';
-import 'package:tuple/tuple.dart';
 
 class SimpleTimeSeriesChart extends StatelessWidget {
   final List<charts.Series<dynamic, DateTime>> seriesList;

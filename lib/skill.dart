@@ -27,7 +27,7 @@ class DB {
     if (currentUser != null) {
       String uid = currentUser.uid;
       CollectionReference skillsCollection =
-      FirebaseFirestore.instance.collection('user/$uid/skills');
+          FirebaseFirestore.instance.collection('user/$uid/skills');
 
       final skillBatch = FirebaseFirestore.instance.batch();
 
@@ -40,7 +40,6 @@ class DB {
       return skillBatch.commit();
     }
   }
-
 
   Future<Logs> getLogsForSkill(String task) async {
     final currentUser = FirebaseAuth.instance.currentUser;
