@@ -34,13 +34,21 @@ class _HomePageAppState extends State<HomePageApp> {
   List<Skill> rowStates = <Skill>[];
   bool _loading = false;
 
+  DB databaseInstance = DB();
+
   @override
   void initState() {
     super.initState();
-    _loading = true;
-    DB().getAllSkills().then((value) {
+
+    databaseInstance.pre = () => {
+          setState(() => {_loading = true})
+        };
+    databaseInstance.post = () => {
+          setState(() => {_loading = false})
+        };
+
+    databaseInstance.getAllSkills().then((value) {
       setState(() {
-        _loading = false;
         rowStates.addAll(value);
         rowStates.sort((a, b) {
           if (a.order < b.order) {
@@ -108,8 +116,7 @@ class _HomePageAppState extends State<HomePageApp> {
     str.then((value) {
       if (value != null && !checkDuplicateSkill(value)) {
         Skill s = Skill(value);
-
-        DB().addNewSkill(s).then((value) {
+        databaseInstance.addNewSkill(s).then((value) {
           setState(
             () {
               rowStates.add(s);
@@ -135,26 +142,26 @@ class _HomePageAppState extends State<HomePageApp> {
       list.add(CardWidget(
         state,
         key: Key(state.name),
-        showChart: () => DB().getLogsForSkill(state.name).then((value) =>
+        showChart: () {
+          databaseInstance.getLogsForSkill(state.name).then((value) {
             Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => SimpleTimeSeriesChart.fromLogs(value)))),
+                builder: (context) => SimpleTimeSeriesChart.fromLogs(value)));
+          });
+        },
         onDelete: () {
           setState(() {
             rowStates.removeAt(i);
           });
-          _loading = true;
-          DB().delete(state.name).then((value) {
+
+          databaseInstance.delete(state.name).then((value) {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text('${state.name} deleted')));
-            DB()
-                .syncOrder(rowStates)
-                .then((value) => setState(() => {_loading = false}));
+            databaseInstance.syncOrder(rowStates);
           });
         },
         onMastered: () => Future.delayed(const Duration(milliseconds: 300), () {
           setState(() {
             state.mastered = true;
-            _loading = true;
           });
 
           if (i != rowStates.length - 1) {
@@ -162,12 +169,8 @@ class _HomePageAppState extends State<HomePageApp> {
             rowStates.add(state);
           }
 
-          DB().updateSkill(state).then((value) => {
-                DB().syncOrder(rowStates).then((value) {
-                  setState(() {
-                    _loading = false;
-                  });
-
+          databaseInstance.updateSkill(state).then((value) => {
+                databaseInstance.syncOrder(rowStates).then((value) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       content: Text('${state.name} mastered'),
                       duration: halfSecond));
@@ -177,11 +180,8 @@ class _HomePageAppState extends State<HomePageApp> {
         onUnmastered: () {
           setState(() {
             state.mastered = false;
-            _loading = true;
           });
-          DB().updateSkill(state).then((value) => setState(() {
-                _loading = false;
-              }));
+          databaseInstance.updateSkill(state);
         },
       ));
     }
@@ -204,10 +204,8 @@ class _HomePageAppState extends State<HomePageApp> {
                 }
                 final Skill element = rowStates.removeAt(oldIndex);
                 rowStates.insert(newIndex, element);
-                _loading = true;
-                DB()
-                    .syncOrder(rowStates)
-                    .then((value) => setState(() => {_loading = false}));
+
+                databaseInstance.syncOrder(rowStates);
               });
             },
             children: list));

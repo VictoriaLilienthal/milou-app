@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class DB {
+  Function pre = () => {};
+  Function post = () => {};
+
   Future saveSkills(List<Skill> rowState) async {
     final currentUser = FirebaseAuth.instance.currentUser;
 
@@ -17,11 +20,16 @@ class DB {
         s.order = i;
         skillBatch.set(skillsCollection.doc(s.name), s.toJson());
       }
-      return skillBatch.commit();
+
+      pre();
+      return skillBatch.commit().then((value) {
+        post();
+        return value;
+      }, onError: (e) => post());
     }
   }
 
-  Future syncOrder(List<Skill> rowState) async {
+  Future<void> syncOrder(List<Skill> rowState) async {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     if (currentUser != null) {
@@ -36,8 +44,10 @@ class DB {
         s.order = i;
         skillBatch.update(skillsCollection.doc(s.name), {'order': i});
       }
-
-      return skillBatch.commit();
+      pre();
+      return skillBatch
+          .commit()
+          .then((value) => {post()}, onError: (e) => post());
     }
   }
 
@@ -52,8 +62,12 @@ class DB {
           .withConverter<Logs>(
               fromFirestore: (snapshot, _) => Logs.fromJson(snapshot.data()!),
               toFirestore: (logs, _) => logs.toJson());
-
-      return (await logs.doc(task).get()).data() as Logs;
+      pre();
+      Object? data = await logs.doc(task).get().then((value) {
+        post();
+        return value.data();
+      }, onError: (e) => {post()});
+      return data as Logs;
     } else {
       throw Exception("User logged out");
     }
@@ -91,25 +105,7 @@ class DB {
       return FirebaseFirestore.instance.runTransaction((transaction) async {
         transaction.set(skillsCollection, s.toJson());
         transaction.set(logsCollection, Logs().toJson());
-      });
-    } else {
-      throw Exception("User logged out");
-    }
-  }
-
-  void saveSkill(Skill s, Logs l) async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-
-    if (currentUser != null) {
-      String uid = currentUser.uid;
-      DocumentReference skillsCollection =
-          FirebaseFirestore.instance.collection('user/$uid/skills').doc(s.name);
-
-      DocumentReference logsCollection =
-          FirebaseFirestore.instance.collection('user/$uid/logs').doc(s.name);
-
-      skillsCollection.update(s.toJson());
-      logsCollection.update(s.toJson());
+      }).then((value) => post(), onError: (e) => post());
     } else {
       throw Exception("User logged out");
     }
@@ -121,7 +117,10 @@ class DB {
       String uid = currentUser.uid;
       DocumentReference skillsCollection =
           FirebaseFirestore.instance.collection('user/$uid/skills').doc(s.name);
-      return skillsCollection.update(s.toJson());
+      return skillsCollection.update(s.toJson()).then((value) {
+        post();
+        return value;
+      }, onError: (e) => {post()});
     } else {
       throw Exception("User logged out");
     }
@@ -153,40 +152,6 @@ class DB {
     }
   }
 
-  // void syncStorage(List<RowState> rowState) async {
-  //   final currentUser = FirebaseAuth.instance.currentUser;
-  //
-  //   if (currentUser != null) {
-  //     String uid = currentUser.uid;
-  //     CollectionReference skillsCollection =
-  //         FirebaseFirestore.instance.collection('user/$uid/skills');
-  //
-  //     CollectionReference logsCollection =
-  //         FirebaseFirestore.instance.collection('user/$uid/logs');
-  //
-  //     final skillBatch = FirebaseFirestore.instance.batch();
-  //     final logsBatch = FirebaseFirestore.instance.batch();
-  //
-  //     for (int i = 0; i < rowState.length; i++) {
-  //       final RowState state = rowState[i];
-  //       Skill s = Skill(state.name);
-  //       s.cnt = state.cnt;
-  //       s.todayCnt = 0;
-  //       s.cnt = state.logs.length;
-  //       s.order = i;
-  //
-  //       Logs l = Logs();
-  //       l.logs = state.logs.map((e) => e.item2).toList();
-  //
-  //       skillBatch.set(skillsCollection.doc(s.name), s.toJson());
-  //       logsBatch.set(logsCollection.doc(s.name), l.toJson());
-  //     }
-  //
-  //     skillBatch.commit();
-  //     logsBatch.commit();
-  //   }
-  // }
-
   Future delete(String name) async {
     final currentUser = FirebaseAuth.instance.currentUser;
 
@@ -197,11 +162,11 @@ class DB {
 
       DocumentReference skillLogsDoc =
           FirebaseFirestore.instance.collection('user/$uid/logs').doc(name);
-
+      pre();
       return FirebaseFirestore.instance.runTransaction((transaction) async {
         transaction.delete(skillDoc);
         transaction.delete(skillLogsDoc);
-      });
+      }).then((value) => post(), onError: (e) => post());
     } else {
       throw Exception("User logged out");
     }
@@ -283,7 +248,6 @@ class Logs {
     try {
       return (json['logs'] as List<dynamic>).map((e) => e as int).toList();
     } catch (e) {
-      print("Invalid logs value ${json['logs']}");
       return [];
     }
   }
