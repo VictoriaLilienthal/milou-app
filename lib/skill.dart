@@ -152,7 +152,7 @@ class DB {
     }
   }
 
-  Future delete(String name) async {
+  Future deleteSkill(String name) async {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     if (currentUser != null) {
@@ -167,6 +167,60 @@ class DB {
         transaction.delete(skillDoc);
         transaction.delete(skillLogsDoc);
       }).then((value) => post(), onError: (e) => post());
+    } else {
+      throw Exception("User logged out");
+    }
+  }
+
+  Future addNewGoal(Goal g) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      String uid = currentUser.uid;
+      DocumentReference goalDoc =
+          FirebaseFirestore.instance.collection('user/$uid/goals').doc(g.name);
+
+      pre();
+      goalDoc.set(g.toJson()).then((value) {
+        post();
+        return value;
+      }, onError: (e) => post());
+    } else {
+      throw Exception("User logged out");
+    }
+  }
+
+  Future deleteGoal(Goal g) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      String uid = currentUser.uid;
+      DocumentReference goalDoc =
+          FirebaseFirestore.instance.collection('user/$uid/goals').doc(g.name);
+
+      pre();
+      goalDoc.delete().then((value) {
+        post();
+        return value;
+      }, onError: (e) => post());
+    } else {
+      throw Exception("User logged out");
+    }
+  }
+
+  Future<Iterable<Goal>> getAllGoals() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      String uid = currentUser.uid;
+      CollectionReference goalsCollection = FirebaseFirestore.instance
+          .collection('user/$uid/goals')
+          .withConverter(
+              fromFirestore: (snapshot, _) => Goal.fromJson(snapshot.data()!),
+              toFirestore: (s, _) => (s as Goal).toJson());
+
+      final goalSnapshot = await goalsCollection.get();
+      return goalSnapshot.docs.map((e) => e.data() as Goal);
     } else {
       throw Exception("User logged out");
     }
@@ -232,25 +286,32 @@ class Logs {
       return [];
     }
   }
-
-  factory Logs.fromFirestore(
-    DocumentSnapshot<Map<String, dynamic>> snapshot,
-    SnapshotOptions? options,
-  ) {
-    final data = snapshot.data();
-    Logs l = Logs();
-
-    l.logs = (data?['logs'] as List<dynamic>).map((e) => e as int).toList();
-    return l;
-  }
-
-  Map<String, Object?> toFirestore() {
-    return toJson();
-  }
 }
 
 class Goal {
   String name;
   double target;
-  Goal(this.name, [this.target = 60]);
+  bool isDeleted;
+  int type;
+  int creationTime;
+  Goal(this.name,
+      [this.target = 60,
+      this.isDeleted = false,
+      this.type = 0,
+      this.creationTime = 0]);
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'target': target,
+        'type': type,
+        'isDeleted': isDeleted,
+        'creationTime': creationTime
+      };
+
+  Goal.fromJson(Map<String, dynamic> json)
+      : name = json['name'],
+        target = json['target'] ?? 60,
+        type = json['type'] ?? 0,
+        isDeleted = json['isDeleted'] ?? false,
+        creationTime = json['creationTime'] ?? 0;
 }

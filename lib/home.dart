@@ -50,6 +50,12 @@ class _HomePageAppState extends State<HomePageApp> {
           setState(() => {_loading = false})
         };
 
+    databaseInstance.getAllGoals().then((value) {
+      setState(() {
+        goals.addAll(value);
+      });
+    });
+
     databaseInstance.getAllSkills().then((value) {
       setState(() {
         rowStates.addAll(value);
@@ -98,7 +104,7 @@ class _HomePageAppState extends State<HomePageApp> {
             drawer: const DrawerWidget(),
             body: getBody(TabBarView(
               children: <Widget>[
-                TrainingWidget(rowStates),
+                TrainingWidget(rowStates, goals),
                 GoalsPage(
                   goals,
                   key: const Key("goals-tab"),
@@ -123,9 +129,10 @@ class _HomePageAppState extends State<HomePageApp> {
   // Show the add new command dialog box
   void showAddNewCommandDialog() async {
     Future<String?> str = showDialog(
-        context: context,
-        builder: (BuildContext context) =>
-            AddNewCommandWidget(isValidSkillName));
+      context: context,
+      builder: (BuildContext context) => AddNewCommandWidget(
+          isValidSkillName, () => {showErrorMessage("Invalid task name")}),
+    );
 
     str.then((value) {
       if (value != null && isValidSkillName(value)) {
@@ -145,27 +152,28 @@ class _HomePageAppState extends State<HomePageApp> {
               content: Text(
                   "Oops, that didn't work as expected. Please try again")));
         });
-      }
+      } else {}
     });
   }
 
   void addNewGoal() async {
-    List<String> str = rowStates.map((e) => e.name).toList();
-    List<String> str2 = goals.map((e) => e.name).toList();
-    str.removeWhere((element) => str2.contains(element));
+    List<String> skills = rowStates.map((e) => e.name).toList();
+    List<String> goalsAlreadySet = goals.map((e) => e.name).toList();
+    skills.removeWhere((element) => goalsAlreadySet.contains(element));
 
-    Future<Goal?> goal = showDialog(
-        context: context,
-        builder: (BuildContext context) => NewGoalDialog(str));
+    if (skills.isNotEmpty) {
+      Goal? goal = await showDialog(
+          context: context,
+          builder: (BuildContext context) => NewGoalDialog(skills));
 
-    goal.then((value) => {
-          if (value != null)
-            {
-              setState(() {
-                goals.add(value);
-              })
-            }
-        });
+      if (goal != null) {
+        databaseInstance.addNewGoal(goal).then((value) => setState(() {
+              goals.add(goal);
+            }));
+      }
+    } else {
+      showErrorMessage('No tasks added yet');
+    }
   }
 
   bool isValidSkillName(String? value) {
@@ -204,5 +212,12 @@ class _HomePageAppState extends State<HomePageApp> {
     } else {
       return child;
     }
+  }
+
+  void showErrorMessage(String error) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(error),
+        backgroundColor: Colors.red,
+        duration: secondDuration));
   }
 }

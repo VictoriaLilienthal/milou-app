@@ -11,13 +11,14 @@ class NewGoalDialog extends StatefulWidget {
 }
 
 class _NewGoalDialogState extends State<NewGoalDialog> {
-  String dropdownValue = "";
+  String goalName = "";
   double _currentSliderValue = 60;
+  String goalType = "0";
 
   @override
   Widget build(BuildContext context) {
-    if (dropdownValue.isEmpty) {
-      dropdownValue = widget.skillNames.first;
+    if (goalName.isEmpty) {
+      goalName = widget.skillNames.first;
     }
     return AlertDialog(
       title: const Text('New Goal'),
@@ -26,10 +27,10 @@ class _NewGoalDialogState extends State<NewGoalDialog> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           DropdownButton<String>(
-            value: dropdownValue,
+            value: goalName,
             onChanged: (String? newValue) {
               setState(() {
-                dropdownValue = newValue!;
+                goalName = newValue!;
               });
             },
             items: getListItems(),
@@ -44,7 +45,19 @@ class _NewGoalDialogState extends State<NewGoalDialog> {
                 _currentSliderValue = value;
               });
             },
-          )
+          ),
+          DropdownButton<String>(
+            value: goalType,
+            onChanged: (String? newValue) {
+              setState(() {
+                goalType = newValue!;
+              });
+            },
+            items: const [
+              DropdownMenuItem(value: "0", child: Text("Daily")),
+              DropdownMenuItem(value: "1", child: Text("Weekly"))
+            ],
+          ),
         ],
       ),
       actions: <Widget>[
@@ -52,7 +65,7 @@ class _NewGoalDialogState extends State<NewGoalDialog> {
           icon: const Icon(Icons.check),
           color: Colors.green,
           onPressed: () {
-            Navigator.pop(context, Goal(dropdownValue, _currentSliderValue));
+            Navigator.pop(context, Goal(goalName, _currentSliderValue));
           },
         ),
         IconButton(

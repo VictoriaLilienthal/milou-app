@@ -2,13 +2,24 @@ import 'package:flutter/material.dart';
 
 class AddNewCommandWidget extends StatelessWidget {
   final Function isValidSkillName;
+  final Function onError;
 
-  const AddNewCommandWidget(this.isValidSkillName, {Key? key})
+  const AddNewCommandWidget(this.isValidSkillName, this.onError, {Key? key})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     TextEditingController textFieldController = TextEditingController();
+
+    handleText() {
+      if (textFieldController.text.isNotEmpty &&
+          isValidSkillName(textFieldController.text)) {
+        Navigator.pop(context, textFieldController.text);
+      } else {
+        onError();
+      }
+    }
+
     return AlertDialog(
       title: const Text('New Command'),
       content: Column(
@@ -19,10 +30,7 @@ class AddNewCommandWidget extends StatelessWidget {
             controller: textFieldController,
             decoration: const InputDecoration(hintText: "Command"),
             onSubmitted: (value) {
-              if (textFieldController.text.isNotEmpty &&
-                  isValidSkillName(textFieldController.text)) {
-                Navigator.pop(context, textFieldController.text);
-              }
+              handleText();
             },
           ),
         ],
@@ -32,10 +40,7 @@ class AddNewCommandWidget extends StatelessWidget {
           icon: const Icon(Icons.check),
           color: Colors.green,
           onPressed: () {
-            if (textFieldController.text.isNotEmpty &&
-                isValidSkillName(textFieldController.text)) {
-              Navigator.pop(context, textFieldController.text);
-            }
+            handleText();
           },
         ),
         IconButton(

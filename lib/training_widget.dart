@@ -10,8 +10,9 @@ const Duration halfSecond = Duration(milliseconds: 500);
 
 class TrainingWidget extends StatefulWidget {
   final List<Skill> rowStates;
-
-  const TrainingWidget(this.rowStates, {Key? key}) : super(key: key);
+  final List<Goal> goals;
+  const TrainingWidget(this.rowStates, this.goals, {Key? key})
+      : super(key: key);
 
   @override
   TrainingWidgetState createState() => TrainingWidgetState();
@@ -28,10 +29,14 @@ class TrainingWidgetState extends State<TrainingWidget> {
     for (var i = 0; i < rowStates.length; i++) {
       Skill state = rowStates[i];
 
+      Iterable<Goal> goals = widget.goals.where(
+          (element) => element.name.toLowerCase() == state.name.toLowerCase());
+
       list.add(CardWidget(
         state,
+        goal: goals.isEmpty ? null : goals.first,
         key: Key(state.name),
-        showChart: () {
+        onShowChart: () {
           databaseInstance.getLogsForSkill(state.name).then((value) {
             Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) => SimpleTimeSeriesChart.fromLogs(value)));
@@ -42,7 +47,7 @@ class TrainingWidgetState extends State<TrainingWidget> {
             rowStates.removeAt(i);
           });
 
-          databaseInstance.delete(state.name).then((value) {
+          databaseInstance.deleteSkill(state.name).then((value) {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text('${state.name} deleted')));
             databaseInstance.syncOrder(rowStates);

@@ -7,17 +7,19 @@ const IconData pets = IconData(0xe4a1, fontFamily: 'MaterialIcons');
 
 class CardWidget extends StatefulWidget {
   final Skill state;
-  final Function showChart;
+  final Function onShowChart;
   final Function onUnmastered;
   final Function onDelete;
   final Function onMastered;
+  final Goal? goal;
 
   const CardWidget(this.state,
       {required Key? key,
-      required this.showChart,
+      required this.onShowChart,
       required this.onUnmastered,
       required this.onDelete,
-      required this.onMastered})
+      required this.onMastered,
+      this.goal})
       : super(key: key);
 
   @override
@@ -42,6 +44,74 @@ class _CardWidgetState extends State<CardWidget> {
   Widget build(BuildContext context) {
     Skill state = widget.state;
 
+    List<Widget> kids = [
+      Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Row(
+                    children: [
+                      state.mastered
+                          ? IconButton(
+                              icon: const Icon(
+                                Icons.star,
+                                size: 30,
+                                color: Colors.yellow,
+                              ),
+                              onPressed: () => {widget.onUnmastered()})
+                          : IconButton(
+                              icon: const Icon(
+                                pets,
+                                size: 30,
+                                color: Colors.green,
+                              ),
+                              onPressed: () {},
+                            ),
+                      Text(
+                        state.name,
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.bar_chart,
+                      size: 30,
+                      color: Colors.blue,
+                    ),
+                    onPressed: () => widget.onShowChart(),
+                  )
+                ],
+              ),
+            ),
+            Row(
+              children: [
+                Expanded(
+                    child: Text(dateFmt(state),
+                        style: Theme.of(context).textTheme.bodyText1)),
+                Expanded(
+                    child: Text('today ${state.todayCnt}',
+                        style: Theme.of(context).textTheme.bodyText1)),
+                Expanded(
+                    child: Text('All time ${state.cnt}',
+                        style: Theme.of(context).textTheme.bodyText1)),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ];
+
+    if (widget.goal != null) {
+      kids.add(LinearProgressIndicator(
+        value: state.cnt / widget.goal!.target,
+      ));
+    }
     return Dismissible(
       key: Key(state.name),
       direction: DismissDirection.horizontal,
@@ -101,65 +171,8 @@ class _CardWidgetState extends State<CardWidget> {
                   DB().addClick(state.name);
                 });
               },
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Row(
-                            children: [
-                              state.mastered
-                                  ? IconButton(
-                                      icon: const Icon(
-                                        Icons.star,
-                                        size: 30,
-                                        color: Colors.yellow,
-                                      ),
-                                      onPressed: () => {widget.onUnmastered()})
-                                  : IconButton(
-                                      icon: const Icon(
-                                        pets,
-                                        size: 30,
-                                        color: Colors.green,
-                                      ),
-                                      onPressed: () {},
-                                    ),
-                              Text(
-                                state.name,
-                                style: const TextStyle(fontSize: 20),
-                              ),
-                            ],
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.bar_chart,
-                              size: 30,
-                              color: Colors.blue,
-                            ),
-                            onPressed: () => widget.showChart(),
-                          )
-                        ],
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                            child: Text(dateFmt(state),
-                                style: Theme.of(context).textTheme.bodyText1)),
-                        Expanded(
-                            child: Text('today ${state.todayCnt}',
-                                style: Theme.of(context).textTheme.bodyText1)),
-                        Expanded(
-                            child: Text('All time ${state.cnt}',
-                                style: Theme.of(context).textTheme.bodyText1)),
-                      ],
-                    )
-                  ],
-                ),
+              child: Column(
+                children: kids,
               ))),
     );
   }
