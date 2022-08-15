@@ -1,7 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterfire_ui/auth.dart';
 
-import 'main.dart';
+import 'profile_page.dart';
 
 class DrawerWidget extends StatelessWidget {
   const DrawerWidget({Key? key}) : super(key: key);
@@ -11,29 +11,20 @@ class DrawerWidget extends StatelessWidget {
     return Drawer(
         child: ListView(
       children: [
-        const DrawerHeader(
-          decoration: BoxDecoration(
-            color: Colors.blue,
-          ),
-          child: Text('Milou'),
-        ),
         ListTile(
+          leading: const Icon(Icons.person),
           title: const Text('Profile'),
           onTap: () {
-            const providerConfigs = [EmailProviderConfiguration()];
-            ProfileScreen profileScreen = ProfileScreen(
-              providerConfigs: providerConfigs,
-              actions: [
-                SignedOutAction((context) {
-                  Navigator.of(context).pushReplacement(MaterialPageRoute(
-                      builder: (context) => const LandingApp()));
-                }),
-              ],
-            );
             Navigator.of(context).pop();
-            Navigator.of(context)
-                .push(MaterialPageRoute(builder: (context) => profileScreen));
+            Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const ProfilePage()));
           },
+        ),
+        const Divider(),
+        ListTile(
+          title: const Text('Sign out'),
+          leading: const Icon(Icons.logout),
+          onTap: () => {FirebaseAuth.instance.signOut().then((value) => null)},
         ),
       ],
     ));

@@ -81,8 +81,8 @@ class DB {
       CollectionReference skillsCollection = FirebaseFirestore.instance
           .collection('user/$uid/skills')
           .withConverter(
-              fromFirestore: Skill.fromFirestore,
-              toFirestore: (Object? s, options) => (s as Skill).toFirestore());
+              fromFirestore: (snapshot, _) => Skill.fromJson(snapshot.data()!),
+              toFirestore: (s, _) => (s as Skill).toJson());
 
       final docSnap = await skillsCollection.get();
       return docSnap.docs.map((e) => e.data() as Skill);
@@ -180,13 +180,17 @@ class Skill {
   int lastActivity;
   int todayCnt;
   int order;
+  int creationTime;
+  bool isDeleted;
 
   Skill(this.name,
       [this.cnt = 0,
       this.mastered = false,
       this.todayCnt = 0,
       this.lastActivity = 0,
-      this.order = 0]);
+      this.order = 0,
+      this.creationTime = 0,
+      this.isDeleted = false]);
 
   Map<String, dynamic> toJson() => {
         'name': name,
@@ -194,43 +198,20 @@ class Skill {
         'mastered': mastered,
         'lastActivity': lastActivity,
         'todayCnt': todayCnt,
-        'order': order
+        'order': order,
+        'isDeleted': isDeleted,
+        'creationTime': creationTime
       };
 
   Skill.fromJson(Map<String, dynamic> json)
       : name = json['name'],
-        cnt = json['cnt'],
-        mastered = json['mastered'],
-        todayCnt = json['todayCnt'],
-        lastActivity = json['lastActivity'],
-        order = json['order'];
-
-  factory Skill.fromFirestore(
-    DocumentSnapshot<Map<String, dynamic>> snapshot,
-    SnapshotOptions? options,
-  ) {
-    final data = snapshot.data();
-    Skill s = Skill(data?['name']);
-
-    s.cnt = data?['cnt'];
-    s.mastered = data?['mastered'];
-    s.lastActivity = data?['lastActivity'];
-    s.todayCnt = data?['todayCnt'];
-    s.order = data?['order'];
-
-    return s;
-  }
-
-  Map<String, Object?> toFirestore() {
-    return {
-      'name': name,
-      'cnt': cnt,
-      'mastered': mastered,
-      'today': lastActivity,
-      'todayCnt': todayCnt,
-      'order': order
-    };
-  }
+        cnt = json['cnt'] ?? 0,
+        mastered = json['mastered'] ?? false,
+        todayCnt = json['todayCnt'] ?? 0,
+        lastActivity = json['lastActivity'] ?? 0,
+        order = json['order'] ?? 0,
+        isDeleted = json['isDeleted'] ?? false,
+        creationTime = json['creationTime'] ?? 0;
 }
 
 class Logs {
@@ -264,8 +245,12 @@ class Logs {
   }
 
   Map<String, Object?> toFirestore() {
-    return {
-      'logs': logs,
-    };
+    return toJson();
   }
+}
+
+class Goal {
+  String name;
+  int target;
+  Goal(this.name, [this.target = 60]);
 }

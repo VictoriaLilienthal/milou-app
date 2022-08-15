@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -5,15 +7,21 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutterfire_ui/auth.dart';
+import 'package:json_theme/json_theme.dart';
 
 import 'firebase_options.dart';
 import 'home.dart';
 import 'storage.dart';
 
 class LandingApp extends StatelessWidget {
-  const LandingApp({Key? key}) : super(key: key);
+  ThemeData themeDark = ThemeData(brightness: Brightness.dark);
+
+  LandingApp({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,12 +32,7 @@ class LandingApp extends StatelessWidget {
 
     // This is the main app.
     return MaterialApp(
-        theme: ThemeData(
-          brightness: Brightness.light,
-        ),
-        darkTheme: ThemeData(
-          brightness: Brightness.dark,
-        ),
+        darkTheme: themeDark,
         themeMode: ThemeMode.dark,
         title: 'Milou',
         home: StreamBuilder<User?>(
@@ -87,5 +90,11 @@ void main() async {
         "https://milou-4b168-default-rtdb.firebaseio.com/";
   }
 
-  runApp(const LandingApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  final themeStr = await rootBundle.loadString('appainter_theme_dark.json');
+  final themeJson = jsonDecode(themeStr);
+  final theme = ThemeDecoder.decodeThemeData(themeJson)!;
+  var la = LandingApp();
+  la.themeDark = theme;
+  runApp(la);
 }

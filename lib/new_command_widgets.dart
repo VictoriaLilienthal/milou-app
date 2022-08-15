@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 class AddNewCommandWidget extends StatelessWidget {
-  final Function buttonDisabled;
+  final Function isValidSkillName;
 
-  const AddNewCommandWidget(this.buttonDisabled, {Key? key}) : super(key: key);
+  const AddNewCommandWidget(this.isValidSkillName, {Key? key})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +19,8 @@ class AddNewCommandWidget extends StatelessWidget {
             controller: textFieldController,
             decoration: const InputDecoration(hintText: "Command"),
             onSubmitted: (value) {
-              if (textFieldController.text.isNotEmpty) {
+              if (textFieldController.text.isNotEmpty &&
+                  isValidSkillName(textFieldController.text)) {
                 Navigator.pop(context, textFieldController.text);
               }
             },
@@ -30,8 +32,8 @@ class AddNewCommandWidget extends StatelessWidget {
           icon: const Icon(Icons.check),
           color: Colors.green,
           onPressed: () {
-            if (textFieldController.text.isNotEmpty ||
-                !buttonDisabled(textFieldController.text)) {
+            if (textFieldController.text.isNotEmpty &&
+                isValidSkillName(textFieldController.text)) {
               Navigator.pop(context, textFieldController.text);
             }
           },

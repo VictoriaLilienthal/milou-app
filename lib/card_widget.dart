@@ -117,7 +117,7 @@ class _CardWidgetState extends State<CardWidget> {
                                       icon: const Icon(
                                         Icons.star,
                                         size: 30,
-                                        color: Colors.green,
+                                        color: Colors.yellow,
                                       ),
                                       onPressed: () => {widget.onUnmastered()})
                                   : IconButton(
