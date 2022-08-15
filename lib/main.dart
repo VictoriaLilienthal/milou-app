@@ -1,25 +1,17 @@
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutterfire_ui/auth.dart';
-import 'package:json_theme/json_theme.dart';
 
 import 'firebase_options.dart';
 import 'home.dart';
-import 'storage.dart';
 
 class LandingApp extends StatelessWidget {
-  ThemeData themeDark = ThemeData(brightness: Brightness.dark);
-
-  LandingApp({
+  const LandingApp({
     Key? key,
   }) : super(key: key);
 
@@ -32,7 +24,9 @@ class LandingApp extends StatelessWidget {
 
     // This is the main app.
     return MaterialApp(
-        darkTheme: themeDark,
+        darkTheme: ThemeData(
+            brightness: Brightness.dark,
+            appBarTheme: const AppBarTheme(backgroundColor: Color(0xff004e54))),
         themeMode: ThemeMode.dark,
         title: 'Milou',
         home: StreamBuilder<User?>(
@@ -72,8 +66,6 @@ class LandingApp extends StatelessWidget {
 }
 
 void main() async {
-  Storage.init();
-
   // Connect to firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -82,19 +74,7 @@ void main() async {
   // if running locally, connect to local firebase instances for quicker development
   if (kDebugMode) {
     await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
-    FirebaseDatabase.instance.databaseURL =
-        "http://localhost:9000/?ns=milou-4b168";
     FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
-  } else {
-    FirebaseDatabase.instance.databaseURL =
-        "https://milou-4b168-default-rtdb.firebaseio.com/";
   }
-
-  WidgetsFlutterBinding.ensureInitialized();
-  final themeStr = await rootBundle.loadString('appainter_theme_dark.json');
-  final themeJson = jsonDecode(themeStr);
-  final theme = ThemeDecoder.decodeThemeData(themeJson)!;
-  var la = LandingApp();
-  la.themeDark = theme;
-  runApp(la);
+  runApp(const LandingApp());
 }

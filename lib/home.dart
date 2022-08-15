@@ -9,6 +9,7 @@ import 'card_widget.dart';
 import 'drawer.dart';
 import 'mastered_prompt_dialog.dart';
 import 'new_command_widgets.dart';
+import 'new_goal_dialog.dart';
 import 'skill.dart';
 import 'training_widget.dart';
 
@@ -33,6 +34,7 @@ class HomePageApp extends StatefulWidget {
 
 class _HomePageAppState extends State<HomePageApp> {
   final List<Skill> rowStates = [];
+  final List<Goal> goals = [];
   bool _loading = false;
 
   DB databaseInstance = DB();
@@ -97,8 +99,9 @@ class _HomePageAppState extends State<HomePageApp> {
             body: getBody(TabBarView(
               children: <Widget>[
                 TrainingWidget(rowStates),
-                const GoalsPage(
-                  key: Key("goals-tab"),
+                GoalsPage(
+                  goals,
+                  key: const Key("goals-tab"),
                 ),
               ],
             )),
@@ -146,7 +149,24 @@ class _HomePageAppState extends State<HomePageApp> {
     });
   }
 
-  void addNewGoal() {}
+  void addNewGoal() async {
+    List<String> str = rowStates.map((e) => e.name).toList();
+    List<String> str2 = goals.map((e) => e.name).toList();
+    str.removeWhere((element) => str2.contains(element));
+
+    Future<Goal?> goal = showDialog(
+        context: context,
+        builder: (BuildContext context) => NewGoalDialog(str));
+
+    goal.then((value) => {
+          if (value != null)
+            {
+              setState(() {
+                goals.add(value);
+              })
+            }
+        });
+  }
 
   bool isValidSkillName(String? value) {
     if (value == null || value.isEmpty) {

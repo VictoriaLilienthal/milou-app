@@ -18,7 +18,7 @@ class ProfilePage extends StatelessWidget {
         actions: [
           SignedOutAction((context) {
             Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => LandingApp()));
+                MaterialPageRoute(builder: (context) => const LandingApp()));
           }),
         ],
       ),

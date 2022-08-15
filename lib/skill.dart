@@ -251,6 +251,6 @@ class Logs {
 
 class Goal {
   String name;
-  int target;
+  double target;
   Goal(this.name, [this.target = 60]);
 }

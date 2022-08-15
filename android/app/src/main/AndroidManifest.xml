@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.milou_app">
+   <uses-sdk android:minSdkVersion="19"/>
    <application
         android:label="milou_app"
         android:name="${applicationName}"
