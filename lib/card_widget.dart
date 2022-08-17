@@ -5,7 +5,7 @@ import 'package:spring/spring.dart';
 
 import 'skill.dart';
 
-const IconData pets = IconData(0xe4a1, fontFamily: 'MaterialIcons');
+const IconData PAWS = IconData(0xe4a1, fontFamily: 'MaterialIcons');
 
 class CardWidget extends StatefulWidget {
   final Skill state;
@@ -46,6 +46,82 @@ class _CardWidgetState extends State<CardWidget> {
   Widget build(BuildContext context) {
     Skill state = widget.state;
 
+    Widget getLeadingIcon() {
+      if (state.mastered) {
+        return Spring.bubbleButton(
+            child: IconButton(
+                icon: const Icon(
+                  Icons.star,
+                  size: 24,
+                  color: Colors.yellow,
+                ),
+                onPressed: () => {widget.onUnmastered()}));
+      } else if (widget.goal == null) {
+        return Spring.bubbleButton(
+            child: IconButton(
+          icon: const Icon(
+            PAWS,
+            size: 24,
+            color: Colors.green,
+          ),
+          onPressed: () {},
+        ));
+      } else {
+        int sign = (widget.goal!.target - state.todayCnt).sign;
+        switch (sign) {
+          case 0:
+            {
+              return Spring.scale(
+                animDuration: const Duration(milliseconds: 200),
+                start: 0.1,
+                end: 1,
+                child: const Icon(
+                  Icons.check,
+                  size: 24,
+                  color: Colors.yellow,
+                ),
+              );
+            }
+          case 1:
+            {
+              return Spring.bubbleButton(
+                  child: CircularPercentIndicator(
+                radius: 12,
+                lineWidth: 3.0,
+                percent: state.todayCnt / widget.goal!.target > 1
+                    ? 1
+                    : state.todayCnt / widget.goal!.target,
+                center: Text(
+                  state.todayCnt > widget.goal!.target
+                      ? "0"
+                      : "${widget.goal!.target - state.todayCnt}",
+                  style: const TextStyle(fontSize: 10),
+                ),
+                progressColor: Colors.green,
+              ));
+            }
+          case -1:
+            {
+              return Spring.bubbleButton(
+                  child: const Icon(
+                Icons.check,
+                size: 24,
+                color: Colors.yellow,
+              ));
+            }
+        }
+        return Spring.bubbleButton(
+            child: IconButton(
+          icon: const Icon(
+            PAWS,
+            size: 24,
+            color: Colors.green,
+          ),
+          onPressed: () {},
+        ));
+      }
+    }
+
     List<Widget> kids = [
       Padding(
         padding: const EdgeInsets.all(12.0),
@@ -58,41 +134,7 @@ class _CardWidgetState extends State<CardWidget> {
                 children: <Widget>[
                   Row(
                     children: [
-                      Spring.bubbleButton(
-                          child: state.mastered
-                              ? IconButton(
-                                  icon: const Icon(
-                                    Icons.star,
-                                    size: 24,
-                                    color: Colors.yellow,
-                                  ),
-                                  onPressed: () => {widget.onUnmastered()})
-                              : widget.goal != null
-                                  ? CircularPercentIndicator(
-                                      radius: 12,
-                                      lineWidth: 3.0,
-                                      percent:
-                                          state.todayCnt / widget.goal!.target >
-                                                  1
-                                              ? 1
-                                              : state.todayCnt /
-                                                  widget.goal!.target,
-                                      center: Text(
-                                        state.todayCnt > widget.goal!.target
-                                            ? "0"
-                                            : "${widget.goal!.target - state.todayCnt}",
-                                        style: const TextStyle(fontSize: 10),
-                                      ),
-                                      progressColor: Colors.green,
-                                    )
-                                  : IconButton(
-                                      icon: const Icon(
-                                        pets,
-                                        size: 24,
-                                        color: Colors.green,
-                                      ),
-                                      onPressed: () {},
-                                    )),
+                      getLeadingIcon(),
                       Text(
                         "  ${state.name}",
                         style: const TextStyle(fontSize: 24),
