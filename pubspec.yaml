@@ -36,6 +36,7 @@ dependencies:
   get: ^4.6.5
   percent_indicator: ^4.2.2
   spring: ^2.0.2
+  excel: any
 
 flutter:
   uses-material-design: true

@@ -29,7 +29,7 @@ class NewCommentDialogState extends State<NewCommentDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('New Goal'),
+      title: const Text('New Comment'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -64,6 +64,8 @@ class NewCommentDialogState extends State<NewCommentDialog> {
             items: getListItems(),
           ),
           TextField(
+            keyboardType: TextInputType.multiline,
+            maxLines: null,
             controller: textFieldController,
             decoration: const InputDecoration(hintText: "Comment"),
           ),

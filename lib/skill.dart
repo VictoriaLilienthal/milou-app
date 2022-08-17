@@ -225,6 +225,44 @@ class DB {
       throw Exception("User logged out");
     }
   }
+
+  Future addNewComment(Comment g) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      String uid = currentUser.uid;
+      DocumentReference goalDoc = FirebaseFirestore.instance
+          .collection('user/$uid/comments')
+          .doc("${g.creationTime}");
+
+      pre();
+      goalDoc.set(g.toJson()).then((value) {
+        post();
+        return value;
+      }, onError: (e) => post());
+    } else {
+      throw Exception("User logged out");
+    }
+  }
+
+  Future<Iterable<Comment>> getAllComments() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      String uid = currentUser.uid;
+      CollectionReference commentCollection = FirebaseFirestore.instance
+          .collection('user/$uid/comments')
+          .withConverter(
+              fromFirestore: (snapshot, _) =>
+                  Comment.fromJson(snapshot.data()!),
+              toFirestore: (s, _) => (s as Comment).toJson());
+
+      final goalSnapshot = await commentCollection.get();
+      return goalSnapshot.docs.map((e) => e.data() as Comment);
+    } else {
+      throw Exception("User logged out");
+    }
+  }
 }
 
 class Skill {

@@ -2,22 +2,35 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:milou_app/export.dart';
+import 'package:spring/spring.dart';
 
 import 'skill.dart';
 
 class NotesWidget extends StatefulWidget {
-  List<Comment> comments;
-  NotesWidget(this.comments, {Key? key}) : super(key: key);
+  final List<Comment> comments;
+  const NotesWidget(this.comments, {Key? key}) : super(key: key);
 
   @override
   _NotesWidgetState createState() => _NotesWidgetState();
 }
 
 class _NotesWidgetState extends State<NotesWidget> {
+  final SpringController springController =
+      SpringController(initialAnim: Motion.pause);
+
   @override
   Widget build(BuildContext context) {
     List<Widget> li = [];
 
+    li.add(Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        IconButton(
+            onPressed: () => {Export.exportComments(widget.comments)},
+            icon: const Icon(Icons.download))
+      ],
+    ));
     for (int i = 0; i < widget.comments.length; i++) {
       var comment = widget.comments[i];
       li.add(Dismissible(

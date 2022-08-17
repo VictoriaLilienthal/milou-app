@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'card_widget.dart';
 import 'mastered_prompt_dialog.dart';
-import 'new_command_widgets.dart';
+import 'new_command_dialog.dart';
 import 'new_comment_dialog.dart';
 import 'new_goal_dialog.dart';
 import 'profile_page.dart';
@@ -57,6 +57,13 @@ class _HomePageAppState extends State<HomePageApp> {
     databaseInstance.getAllGoals().then((value) {
       setState(() {
         goals.addAll(value);
+      });
+    });
+
+    databaseInstance.getAllComments().then((value) {
+      setState(() {
+        comments.addAll(value);
+        comments.sort(((a, b) => b.creationTime.compareTo(a.creationTime)));
       });
     });
 
@@ -123,7 +130,6 @@ class _HomePageAppState extends State<HomePageApp> {
                 ],
               ),
             ),
-            // drawer: const DrawerWidget(),
             body: getBody(TabBarView(
               children: <Widget>[
                 TrainingWidget(rowStates, goals),
@@ -191,9 +197,11 @@ class _HomePageAppState extends State<HomePageApp> {
         context: context,
         builder: (BuildContext context) => NewCommentDialog(skills));
 
-    setState(() {
-      comments.add(comment);
-    });
+    databaseInstance.addNewComment(comment).then((value) => {
+          setState(() {
+            comments.add(comment);
+          })
+        });
   }
 
   void showAddNewGoalDialog() async {

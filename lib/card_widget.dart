@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:percent_indicator/percent_indicator.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:spring/spring.dart';
 
 import 'skill.dart';
 
@@ -57,39 +58,41 @@ class _CardWidgetState extends State<CardWidget> {
                 children: <Widget>[
                   Row(
                     children: [
-                      state.mastered
-                          ? IconButton(
-                              icon: const Icon(
-                                Icons.star,
-                                size: 24,
-                                color: Colors.yellow,
-                              ),
-                              onPressed: () => {widget.onUnmastered()})
-                          : widget.goal != null
-                              ? CircularPercentIndicator(
-                                  radius: 12,
-                                  lineWidth: 3.0,
-                                  percent:
-                                      state.todayCnt / widget.goal!.target > 1
-                                          ? 1
-                                          : state.todayCnt /
-                                              widget.goal!.target,
-                                  center: Text(
-                                    state.todayCnt > widget.goal!.target
-                                        ? "0"
-                                        : "${widget.goal!.target - state.todayCnt}",
-                                    style: const TextStyle(fontSize: 10),
-                                  ),
-                                  progressColor: Colors.green,
-                                )
-                              : IconButton(
+                      Spring.bubbleButton(
+                          child: state.mastered
+                              ? IconButton(
                                   icon: const Icon(
-                                    pets,
+                                    Icons.star,
                                     size: 24,
-                                    color: Colors.green,
+                                    color: Colors.yellow,
                                   ),
-                                  onPressed: () {},
-                                ),
+                                  onPressed: () => {widget.onUnmastered()})
+                              : widget.goal != null
+                                  ? CircularPercentIndicator(
+                                      radius: 12,
+                                      lineWidth: 3.0,
+                                      percent:
+                                          state.todayCnt / widget.goal!.target >
+                                                  1
+                                              ? 1
+                                              : state.todayCnt /
+                                                  widget.goal!.target,
+                                      center: Text(
+                                        state.todayCnt > widget.goal!.target
+                                            ? "0"
+                                            : "${widget.goal!.target - state.todayCnt}",
+                                        style: const TextStyle(fontSize: 10),
+                                      ),
+                                      progressColor: Colors.green,
+                                    )
+                                  : IconButton(
+                                      icon: const Icon(
+                                        pets,
+                                        size: 24,
+                                        color: Colors.green,
+                                      ),
+                                      onPressed: () {},
+                                    )),
                       Text(
                         "  ${state.name}",
                         style: const TextStyle(fontSize: 24),
