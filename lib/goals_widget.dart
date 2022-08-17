@@ -3,16 +3,16 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:milou_app/skill.dart';
 
-class GoalsPage extends StatefulWidget {
+class GoalsWidget extends StatefulWidget {
   final List<Goal> goals;
 
-  const GoalsPage(this.goals, {Key? key}) : super(key: key);
+  const GoalsWidget(this.goals, {Key? key}) : super(key: key);
 
   @override
-  GoalsPageState createState() => GoalsPageState();
+  GoalsWidgetState createState() => GoalsWidgetState();
 }
 
-class GoalsPageState extends State<GoalsPage> {
+class GoalsWidgetState extends State<GoalsWidget> {
   @override
   Widget build(BuildContext context) {
     List<Widget> li = [];

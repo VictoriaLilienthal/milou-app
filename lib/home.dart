@@ -127,7 +127,7 @@ class _HomePageAppState extends State<HomePageApp> {
             body: getBody(TabBarView(
               children: <Widget>[
                 TrainingWidget(rowStates, goals),
-                GoalsPage(
+                GoalsWidget(
                   goals,
                   key: const Key("goals-tab"),
                 ),
