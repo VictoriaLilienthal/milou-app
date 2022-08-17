@@ -5,17 +5,56 @@ import 'package:flutter/material.dart';
 
 import 'skill.dart';
 
+class AxisTheme {
+  static charts.RenderSpec<num> axisThemeNum() {
+    return const charts.GridlineRendererSpec(
+      labelStyle: charts.TextStyleSpec(
+        color: charts.MaterialPalette.white,
+      ),
+      lineStyle: charts.LineStyleSpec(
+        color: charts.MaterialPalette.white,
+      ),
+    );
+  }
+
+  static charts.RenderSpec<DateTime> axisThemeDateTime() {
+    return const charts.GridlineRendererSpec(
+      labelStyle: charts.TextStyleSpec(
+        color: charts.MaterialPalette.white,
+      ),
+      lineStyle: charts.LineStyleSpec(
+        color: charts.MaterialPalette.transparent,
+      ),
+    );
+  }
+
+  static charts.RenderSpec<String> axisThemeString() {
+    return const charts.SmallTickRendererSpec(
+      labelStyle: charts.TextStyleSpec(
+        color: charts.MaterialPalette.white,
+      ),
+      lineStyle: charts.LineStyleSpec(
+        color: charts.MaterialPalette.transparent,
+      ),
+    );
+  }
+}
+
 class SimpleTimeSeriesChart extends StatelessWidget {
+  final String title;
   final List<charts.Series<dynamic, DateTime>> seriesList;
 
-  const SimpleTimeSeriesChart(this.seriesList, {super.key});
+  const SimpleTimeSeriesChart(this.title, this.seriesList, {super.key});
 
-  factory SimpleTimeSeriesChart.fromLogs(Logs logs) {
-    return SimpleTimeSeriesChart(_createChartDataFromLogs(logs.logs));
+  factory SimpleTimeSeriesChart.fromLogs(String title, Logs logs) {
+    return SimpleTimeSeriesChart(title, _createChartDataFromLogs(logs.logs));
   }
 
   @override
   Widget build(BuildContext context) {
+    charts.RenderSpec<DateTime> renderSpecDomain =
+        AxisTheme.axisThemeDateTime();
+
     return Scaffold(
         appBar: AppBar(
           title: const Text("Milou"),
@@ -29,12 +68,17 @@ class SimpleTimeSeriesChart extends StatelessWidget {
               child: charts.TimeSeriesChart(
                 defaultInteractions: true,
                 seriesList,
+                primaryMeasureAxis: charts.NumericAxisSpec(
+                  renderSpec: AxisTheme.axisThemeNum(),
+                ),
+                domainAxis: charts.DateTimeAxisSpec(
+                  renderSpec: renderSpecDomain,
+                ),
                 animate: true,
                 dateTimeFactory: const charts.LocalDateTimeFactory(),
                 behaviors: [
-                  charts.ChartTitle('Training logs',
+                  charts.ChartTitle(title,
                       behaviorPosition: charts.BehaviorPosition.top),
-                  charts.SeriesLegend(),
                 ],
               ),
             )),
@@ -71,14 +115,19 @@ class SimpleTimeSeriesChart extends StatelessWidget {
 
     final List<TimeSeriesData> data = [];
 
-    counts.forEach((key, value) => data.add(TimeSeriesData(key, value)));
+    List keys = counts.keys.toList();
+    keys.sort(((a, b) => a.compareTo(b)));
+
+    for (var key in keys) {
+      data.add(TimeSeriesData(key, counts[key]));
+    }
 
     return [
       charts.Series<TimeSeriesData, DateTime>(
         id: 'Training Logs',
         colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-        domainFn: (TimeSeriesData sales, _) => sales.time,
-        measureFn: (TimeSeriesData sales, _) => sales.cnt,
+        domainFn: (TimeSeriesData series, _) => series.time,
+        measureFn: (TimeSeriesData series, _) => series.cnt,
         data: data,
       )
     ];

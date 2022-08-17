@@ -9,9 +9,22 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const providerConfigs = [EmailProviderConfiguration()];
+
     return Scaffold(
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 1,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Training"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile")
+        ],
+        onTap: (value) {
+          if (value == 0) {
+            Navigator.of(context).pop();
+          }
+        },
+      ),
       appBar: AppBar(
-        title: const Text("Milou"),
+        title: const Text("Profile"),
       ),
       body: ProfileScreen(
         providerConfigs: providerConfigs,

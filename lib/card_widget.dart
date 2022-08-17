@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:percent_indicator/percent_indicator.dart';
 
 import 'skill.dart';
 
@@ -60,28 +61,45 @@ class _CardWidgetState extends State<CardWidget> {
                           ? IconButton(
                               icon: const Icon(
                                 Icons.star,
-                                size: 30,
+                                size: 24,
                                 color: Colors.yellow,
                               ),
                               onPressed: () => {widget.onUnmastered()})
-                          : IconButton(
-                              icon: const Icon(
-                                pets,
-                                size: 30,
-                                color: Colors.green,
-                              ),
-                              onPressed: () {},
-                            ),
+                          : widget.goal != null
+                              ? CircularPercentIndicator(
+                                  radius: 12,
+                                  lineWidth: 3.0,
+                                  percent:
+                                      state.todayCnt / widget.goal!.target > 1
+                                          ? 1
+                                          : state.todayCnt /
+                                              widget.goal!.target,
+                                  center: Text(
+                                    state.todayCnt > widget.goal!.target
+                                        ? "0"
+                                        : "${widget.goal!.target - state.todayCnt}",
+                                    style: const TextStyle(fontSize: 10),
+                                  ),
+                                  progressColor: Colors.green,
+                                )
+                              : IconButton(
+                                  icon: const Icon(
+                                    pets,
+                                    size: 24,
+                                    color: Colors.green,
+                                  ),
+                                  onPressed: () {},
+                                ),
                       Text(
-                        state.name,
-                        style: const TextStyle(fontSize: 20),
+                        "  ${state.name}",
+                        style: const TextStyle(fontSize: 24),
                       ),
                     ],
                   ),
                   IconButton(
                     icon: const Icon(
                       Icons.bar_chart,
-                      size: 30,
+                      size: 24,
                       color: Colors.blue,
                     ),
                     onPressed: () => widget.onShowChart(),
@@ -91,15 +109,9 @@ class _CardWidgetState extends State<CardWidget> {
             ),
             Row(
               children: [
-                Expanded(
-                    child: Text(dateFmt(state),
-                        style: Theme.of(context).textTheme.bodyText1)),
-                Expanded(
-                    child: Text('today ${state.todayCnt}',
-                        style: Theme.of(context).textTheme.bodyText1)),
-                Expanded(
-                    child: Text('All time ${state.cnt}',
-                        style: Theme.of(context).textTheme.bodyText1)),
+                Expanded(child: Text(dateFmt(state))),
+                Expanded(child: Text('today ${state.todayCnt}')),
+                Expanded(child: Text('All time ${state.cnt}')),
               ],
             ),
           ],

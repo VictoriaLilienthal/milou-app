@@ -3,7 +3,7 @@ description: A new Flutter project.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 version: 1.0.0+1
 
@@ -32,12 +32,13 @@ dependencies:
   uuid: ^3.0.6
   charts_flutter: ^0.12.0
   firebase_analytics: ^9.3.0
-
+  json_theme: ^4.0.0
+  get: ^4.6.5
+  percent_indicator: ^4.2.2
+  spring: ^2.0.2
 
 flutter:
   uses-material-design: true
 
-assets:
-  - assets/audio/clicker.mp3
-  - assets/appainter_theme_dark.json
-  - assets/appainter_theme_light.json
+  assets:
+    - assets/theme/

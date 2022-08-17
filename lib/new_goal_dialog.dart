@@ -7,10 +7,10 @@ class NewGoalDialog extends StatefulWidget {
   const NewGoalDialog(this.skillNames, {Key? key}) : super(key: key);
 
   @override
-  _NewGoalDialogState createState() => _NewGoalDialogState();
+  NewGoalDialogState createState() => NewGoalDialogState();
 }
 
-class _NewGoalDialogState extends State<NewGoalDialog> {
+class NewGoalDialogState extends State<NewGoalDialog> {
   String goalName = "";
   double _currentSliderValue = 60;
   String goalType = "0";
@@ -35,16 +35,21 @@ class _NewGoalDialogState extends State<NewGoalDialog> {
             },
             items: getListItems(),
           ),
-          Slider(
-            value: _currentSliderValue,
-            max: 100,
-            divisions: 100,
-            label: _currentSliderValue.round().toString(),
-            onChanged: (double value) {
-              setState(() {
-                _currentSliderValue = value;
-              });
-            },
+          Row(
+            children: [
+              Slider(
+                value: _currentSliderValue,
+                max: 100,
+                divisions: 100,
+                label: _currentSliderValue.round().toString(),
+                onChanged: (double value) {
+                  setState(() {
+                    _currentSliderValue = value;
+                  });
+                },
+              ),
+              Text("  ${_currentSliderValue.round()}")
+            ],
           ),
           DropdownButton<String>(
             value: goalType,
@@ -65,7 +70,7 @@ class _NewGoalDialogState extends State<NewGoalDialog> {
           icon: const Icon(Icons.check),
           color: Colors.green,
           onPressed: () {
-            Navigator.pop(context, Goal(goalName, _currentSliderValue));
+            Navigator.pop(context, Goal(goalName, _currentSliderValue.toInt()));
           },
         ),
         IconButton(

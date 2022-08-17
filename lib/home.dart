@@ -3,13 +3,15 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:milou_app/goals_widget.dart';
+import 'package:milou_app/notes_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'card_widget.dart';
-import 'drawer.dart';
 import 'mastered_prompt_dialog.dart';
 import 'new_command_widgets.dart';
+import 'new_comment_dialog.dart';
 import 'new_goal_dialog.dart';
+import 'profile_page.dart';
 import 'skill.dart';
 import 'training_widget.dart';
 
@@ -35,6 +37,8 @@ class HomePageApp extends StatefulWidget {
 class _HomePageAppState extends State<HomePageApp> {
   final List<Skill> rowStates = [];
   final List<Goal> goals = [];
+  final List<Comment> comments = [];
+
   bool _loading = false;
 
   DB databaseInstance = DB();
@@ -85,11 +89,26 @@ class _HomePageAppState extends State<HomePageApp> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-        length: 2,
+        length: 3,
         child: Builder(builder: (BuildContext context) {
           return Scaffold(
+            bottomNavigationBar: BottomNavigationBar(
+              currentIndex: 0,
+              items: const [
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.home), label: "Training"),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.person), label: "Profile")
+              ],
+              onTap: (value) {
+                if (value == 1) {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const ProfilePage()));
+                }
+              },
+            ),
             appBar: AppBar(
-              title: const Text("Milou"),
+              title: const Text("Home"),
               bottom: const TabBar(
                 tabs: <Widget>[
                   Tab(
@@ -98,10 +117,13 @@ class _HomePageAppState extends State<HomePageApp> {
                   Tab(
                     text: "Goal",
                   ),
+                  Tab(
+                    text: "Notes",
+                  )
                 ],
               ),
             ),
-            drawer: const DrawerWidget(),
+            // drawer: const DrawerWidget(),
             body: getBody(TabBarView(
               children: <Widget>[
                 TrainingWidget(rowStates, goals),
@@ -109,19 +131,25 @@ class _HomePageAppState extends State<HomePageApp> {
                   goals,
                   key: const Key("goals-tab"),
                 ),
+                NotesWidget(comments),
               ],
             )),
             floatingActionButton: FloatingActionButton(
-              onPressed: () => {
-                if (DefaultTabController.of(context)?.index == 0)
-                  {showAddNewCommandDialog()}
-                else
-                  {addNewGoal()}
+              onPressed: () {
+                int? index = DefaultTabController.of(context)?.index;
+                if (index == 0) {
+                  showAddNewCommandDialog();
+                } else if (index == 1) {
+                  showAddNewGoalDialog();
+                } else if (index == 2) {
+                  showAddNewCommentDialog();
+                }
               },
               tooltip: 'Add new command',
               child: const Icon(Icons.add),
             ),
-            floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerDocked,
           );
         }));
   }
@@ -156,7 +184,19 @@ class _HomePageAppState extends State<HomePageApp> {
     });
   }
 
-  void addNewGoal() async {
+  void showAddNewCommentDialog() async {
+    List<String> skills = rowStates.map((e) => e.name).toList();
+
+    Comment comment = await showDialog(
+        context: context,
+        builder: (BuildContext context) => NewCommentDialog(skills));
+
+    setState(() {
+      comments.add(comment);
+    });
+  }
+
+  void showAddNewGoalDialog() async {
     List<String> skills = rowStates.map((e) => e.name).toList();
     List<String> goalsAlreadySet = goals.map((e) => e.name).toList();
     skills.removeWhere((element) => goalsAlreadySet.contains(element));

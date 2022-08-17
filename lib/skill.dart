@@ -290,7 +290,7 @@ class Logs {
 
 class Goal {
   String name;
-  double target;
+  int target;
   bool isDeleted;
   int type;
   int creationTime;
@@ -312,6 +312,37 @@ class Goal {
       : name = json['name'],
         target = json['target'] ?? 60,
         type = json['type'] ?? 0,
+        isDeleted = json['isDeleted'] ?? false,
+        creationTime = json['creationTime'] ?? 0;
+}
+
+class Comment {
+  int time;
+  String comment;
+  String skillName;
+  bool isDeleted;
+  int creationTime;
+
+  Comment(
+    this.comment,
+    this.time, {
+    this.skillName = "",
+    this.creationTime = 0,
+    this.isDeleted = false,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'time': time,
+        'comment': comment,
+        'skillName': skillName,
+        'isDeleted': isDeleted,
+        'creationTime': creationTime
+      };
+
+  Comment.fromJson(Map<String, dynamic> json)
+      : time = json['time'],
+        comment = json['comment'],
+        skillName = json['skillName'] ?? '',
         isDeleted = json['isDeleted'] ?? false,
         creationTime = json['creationTime'] ?? 0;
 }

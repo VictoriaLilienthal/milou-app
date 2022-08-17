@@ -39,7 +39,8 @@ class TrainingWidgetState extends State<TrainingWidget> {
         onShowChart: () {
           databaseInstance.getLogsForSkill(state.name).then((value) {
             Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => SimpleTimeSeriesChart.fromLogs(value)));
+                builder: (context) =>
+                    SimpleTimeSeriesChart.fromLogs(state.name, value)));
           });
         },
         onDelete: () {

@@ -81,16 +81,17 @@ class GoalsListItemWidgetState extends State<GoalsListItemWidget> {
               child: Row(children: [
                 Text(g.name),
                 Slider(
-                  value: g.target,
+                  value: g.target.toDouble(),
                   max: 100,
                   divisions: 100,
                   label: g.target.toString(),
                   onChanged: editable
                       ? (v) => {
-                            setState(() => {g.target = v.toInt().toDouble()})
+                            setState(() => {g.target = v.toInt()})
                           }
                       : null,
-                )
+                ),
+                Text("${g.target.round()}")
               ]),
             ),
             IconButton(
@@ -98,11 +99,14 @@ class GoalsListItemWidgetState extends State<GoalsListItemWidget> {
                   editable ? Icons.save : Icons.edit,
                   color: Colors.green,
                 ),
-                onPressed: () => {
-                      setState(() {
-                        editable = !editable;
-                      })
-                    }),
+                onPressed: () {
+                  if (editable) {
+                    DB().addNewGoal(g);
+                  }
+                  setState(() {
+                    editable = !editable;
+                  });
+                }),
           ]),
         )));
   }
