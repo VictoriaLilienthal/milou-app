@@ -5,7 +5,7 @@ import 'package:spring/spring.dart';
 
 import 'skill.dart';
 
-const IconData PAWS = IconData(0xe4a1, fontFamily: 'MaterialIcons');
+const IconData paws = IconData(0xe4a1, fontFamily: 'MaterialIcons');
 
 class CardWidget extends StatefulWidget {
   final Skill state;
@@ -60,7 +60,7 @@ class _CardWidgetState extends State<CardWidget> {
         return Spring.bubbleButton(
             child: IconButton(
           icon: const Icon(
-            PAWS,
+            paws,
             size: 24,
             color: Colors.green,
           ),
@@ -113,7 +113,7 @@ class _CardWidgetState extends State<CardWidget> {
         return Spring.bubbleButton(
             child: IconButton(
           icon: const Icon(
-            PAWS,
+            paws,
             size: 24,
             color: Colors.green,
           ),
@@ -166,7 +166,7 @@ class _CardWidgetState extends State<CardWidget> {
 
     if (widget.goal != null) {
       kids.add(LinearProgressIndicator(
-        value: state.cnt / widget.goal!.target,
+        value: state.todayCnt / widget.goal!.target,
       ));
     }
     return Dismissible(
@@ -199,8 +199,39 @@ class _CardWidgetState extends State<CardWidget> {
           )),
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.endToStart) {
-          widget.onDelete();
-          return true;
+          showDialog(
+              context: context,
+              builder: ((context) {
+                return AlertDialog(
+                  title: const Text('Delete?'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const <Widget>[Text('Confirm Delete')],
+                  ),
+                  actions: <Widget>[
+                    IconButton(
+                      icon: const Icon(Icons.check),
+                      color: Colors.green,
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.cancel),
+                      color: Colors.red,
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                    ),
+                  ],
+                );
+              })).then((value) {
+            if (value) {
+              widget.onDelete();
+            }
+          });
+          return false;
         } else if (direction == DismissDirection.startToEnd) {
           widget.onMastered();
           return false;

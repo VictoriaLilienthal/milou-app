@@ -12,10 +12,10 @@ class NotesWidget extends StatefulWidget {
   const NotesWidget(this.comments, {Key? key}) : super(key: key);
 
   @override
-  _NotesWidgetState createState() => _NotesWidgetState();
+  NotesWidgetState createState() => NotesWidgetState();
 }
 
-class _NotesWidgetState extends State<NotesWidget> {
+class NotesWidgetState extends State<NotesWidget> {
   final SpringController springController =
       SpringController(initialAnim: Motion.pause);
 
