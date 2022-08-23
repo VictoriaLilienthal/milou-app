@@ -1,13 +1,16 @@
 import 'dart:ui';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:milou_app/configs.dart';
 import 'package:milou_app/goals_widget.dart';
 import 'package:milou_app/notes_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'card_widget.dart';
-import 'mastered_prompt_dialog.dart';
+import 'dog_profile_page.dart';
 import 'new_command_dialog.dart';
 import 'new_comment_dialog.dart';
 import 'new_goal_dialog.dart';
@@ -17,13 +20,10 @@ import 'training_widget.dart';
 
 final prefs = SharedPreferences.getInstance();
 const IconData pets = IconData(0xe4a1, fontFamily: 'MaterialIcons');
+const IconData dogs = IconData(0xf149, fontFamily: 'MaterialIcons');
+
 const Duration secondDuration = Duration(milliseconds: 1000);
 const Duration halfSecond = Duration(milliseconds: 500);
-
-// This is a widget for new command window
-Widget buildMarkStarredDialog(BuildContext context) {
-  return const MasteredPromptDialog();
-}
 
 class HomePageApp extends StatefulWidget {
   const HomePageApp({
@@ -95,6 +95,9 @@ class _HomePageAppState extends State<HomePageApp> {
 
   @override
   Widget build(BuildContext context) {
+    const String assetName = 'images/svg.svg';
+    final Widget svg = SvgPicture.asset(assetName, semanticsLabel: 'Dog');
+
     return DefaultTabController(
         length: 3,
         child: Builder(builder: (BuildContext context) {
@@ -116,6 +119,67 @@ class _HomePageAppState extends State<HomePageApp> {
             ),
             appBar: AppBar(
               title: const Text("Home"),
+              actions: [
+                PopupMenuButton<String>(
+                  icon: svg,
+                  onSelected: (s) => {
+                    if (s == 'add_new')
+                      {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => const DogProfilePage()))
+                      }
+                  },
+                  itemBuilder: (BuildContext context) {
+                    return [
+                      const PopupMenuDivider(),
+                      const PopupMenuItem<String>(
+                        value: "add_new",
+                        child: ListTile(
+                          leading: Icon(Icons.add),
+                          title: Text("Add New Dog"),
+                        ),
+                      )
+                    ];
+                  },
+                ),
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert),
+                  onSelected: (s) => {
+                    if (s == '0')
+                      {currentTheme.switchThemes()}
+                    else if (s == '1')
+                      {
+                        setState(() {
+                          FirebaseAuth.instance.signOut();
+                        })
+                      }
+                  },
+                  itemBuilder: (BuildContext context) {
+                    return [
+                      PopupMenuItem<String>(
+                        value: "0",
+                        child: ListTile(
+                          leading: Icon(
+                            currentTheme.isDark()
+                                ? Icons.light_mode
+                                : Icons.dark_mode,
+                          ),
+                          title: Text(currentTheme.isDark()
+                              ? "Light Mode"
+                              : "Dark Mode"),
+                        ),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: "1",
+                        child: ListTile(
+                          leading: Icon(Icons.logout),
+                          title: Text("Logout"),
+                        ),
+                      )
+                    ];
+                  },
+                ),
+              ],
               bottom: const TabBar(
                 tabs: <Widget>[
                   Tab(

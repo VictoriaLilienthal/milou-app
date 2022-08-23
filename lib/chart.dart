@@ -57,7 +57,7 @@ class SimpleTimeSeriesChart extends StatelessWidget {
 
     return Scaffold(
         appBar: AppBar(
-          title: const Text("Milou"),
+          title: Text(title),
         ),
         body: ScrollConfiguration(
             behavior: ScrollConfiguration.of(context).copyWith(
@@ -78,6 +78,8 @@ class SimpleTimeSeriesChart extends StatelessWidget {
                 dateTimeFactory: const charts.LocalDateTimeFactory(),
                 behaviors: [
                   charts.ChartTitle(title,
+                      titleStyleSpec:
+                          const charts.TextStyleSpec(color: charts.Color.white),
                       behaviorPosition: charts.BehaviorPosition.top),
                 ],
               ),

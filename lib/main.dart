@@ -4,16 +4,29 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutterfire_ui/auth.dart';
 
+import 'configs.dart';
 import 'firebase_options.dart';
 import 'home.dart';
 
-class LandingApp extends StatelessWidget {
-  const LandingApp({
-    Key? key,
-  }) : super(key: key);
+class LandingApp extends StatefulWidget {
+  const LandingApp({Key? key}) : super(key: key);
+
+  @override
+  _LandingAppState createState() => _LandingAppState();
+}
+
+class _LandingAppState extends State<LandingApp> {
+  @override
+  void initState() {
+    super.initState();
+    currentTheme.addListener(() {
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +37,21 @@ class LandingApp extends StatelessWidget {
 
     // This is the main app.
     return MaterialApp(
+        debugShowCheckedModeBanner: false,
         darkTheme: ThemeData(
             brightness: Brightness.dark,
-            appBarTheme: const AppBarTheme(backgroundColor: Color(0xff004e54))),
-        themeMode: ThemeMode.dark,
+            appBarTheme: const AppBarTheme(
+                backgroundColor: Color(0xff004e54),
+                systemOverlayStyle: SystemUiOverlayStyle.light),
+            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+                backgroundColor: Color(0xff004f59),
+                selectedItemColor: Color(0xffffffff)),
+            floatingActionButtonTheme: const FloatingActionButtonThemeData(
+                backgroundColor: Color(0xff00bfa5)),
+            sliderTheme: const SliderThemeData(
+                activeTrackColor: Color(0xff1de9b6),
+                thumbColor: Color(0xff64ffda))),
+        themeMode: currentTheme.getDarkMode(),
         title: 'Milou',
         home: StreamBuilder<User?>(
           stream: FirebaseAuth.instance.authStateChanges(),
@@ -152,6 +176,6 @@ void main() async {
   // } catch (e) {
   //   runApp(const LandingApp());
   // }
-
+  await Preferences.init();
   runApp(const LandingApp());
 }
