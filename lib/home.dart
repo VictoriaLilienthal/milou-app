@@ -39,6 +39,8 @@ class _HomePageAppState extends State<HomePageApp> {
   final List<Goal> goals = [];
   final List<Comment> comments = [];
 
+  final List<DogProfile> dogs = [];
+
   bool _loading = false;
 
   DB databaseInstance = DB();
@@ -57,6 +59,12 @@ class _HomePageAppState extends State<HomePageApp> {
     databaseInstance.getAllGoals().then((value) {
       setState(() {
         goals.addAll(value);
+      });
+    });
+
+    databaseInstance.getAllDogs().then((value) {
+      setState(() {
+        dogs.addAll(value);
       });
     });
 
@@ -128,18 +136,14 @@ class _HomePageAppState extends State<HomePageApp> {
                         Navigator.of(context).push(MaterialPageRoute(
                             builder: (context) => const DogProfilePage()))
                       }
+                    else
+                      {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => const DogProfilePage()))
+                      }
                   },
                   itemBuilder: (BuildContext context) {
-                    return [
-                      const PopupMenuDivider(),
-                      const PopupMenuItem<String>(
-                        value: "add_new",
-                        child: ListTile(
-                          leading: Icon(Icons.add),
-                          title: Text("Add New Dog"),
-                        ),
-                      )
-                    ];
+                    return getDogs();
                   },
                 ),
                 PopupMenuButton<String>(
@@ -331,5 +335,31 @@ class _HomePageAppState extends State<HomePageApp> {
         content: Text(error),
         backgroundColor: Colors.red,
         duration: secondDuration));
+  }
+
+  List<PopupMenuEntry<String>> getDogs() {
+    List<PopupMenuEntry<String>> ret = [];
+
+    ret.addAll(dogs.map((d) {
+      return PopupMenuItem<String>(
+        value: d.dogName,
+        child: ListTile(
+          leading: const Icon(paws),
+          title: Text(d.dogName),
+        ),
+      );
+    }).toList());
+
+    ret.addAll([
+      const PopupMenuDivider(),
+      const PopupMenuItem<String>(
+        value: "add_new",
+        child: ListTile(
+          leading: Icon(Icons.add),
+          title: Text("Add New Dog"),
+        ),
+      )
+    ]);
+    return ret;
   }
 }

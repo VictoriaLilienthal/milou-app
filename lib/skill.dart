@@ -263,6 +263,44 @@ class DB {
       throw Exception("User logged out");
     }
   }
+
+  Future addNewDog(DogProfile dog) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      String uid = currentUser.uid;
+      DocumentReference dogDoc = FirebaseFirestore.instance
+          .collection('user/$uid/dogs')
+          .doc("${dog.creationTime}");
+
+      pre();
+      dogDoc.set(dog.toJson()).then((value) {
+        post();
+        return value;
+      }, onError: (e) => post());
+    } else {
+      throw Exception("User logged out");
+    }
+  }
+
+  Future<Iterable<DogProfile>> getAllDogs() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      String uid = currentUser.uid;
+      CollectionReference commentCollection = FirebaseFirestore.instance
+          .collection('user/$uid/dogs')
+          .withConverter(
+              fromFirestore: (snapshot, _) =>
+                  DogProfile.fromJson(snapshot.data()!),
+              toFirestore: (s, _) => (s as DogProfile).toJson());
+
+      final goalSnapshot = await commentCollection.get();
+      return goalSnapshot.docs.map((e) => e.data() as DogProfile);
+    } else {
+      throw Exception("User logged out");
+    }
+  }
 }
 
 class Skill {
@@ -382,5 +420,34 @@ class Comment {
         comment = json['comment'],
         skillName = json['skillName'] ?? '',
         isDeleted = json['isDeleted'] ?? false,
+        creationTime = json['creationTime'] ?? 0;
+}
+
+class DogProfile {
+  String breed;
+  int age;
+  String dogName;
+  bool isDeleted;
+  int creationTime;
+  String imageUuid;
+
+  DogProfile(this.breed, this.age, this.dogName, this.imageUuid,
+      {this.creationTime = 0, this.isDeleted = false});
+
+  Map<String, dynamic> toJson() => {
+        'age': age,
+        'breed': breed,
+        'dogName': dogName,
+        'isDeleted': isDeleted,
+        'creationTime': creationTime,
+        'imageUuid': imageUuid
+      };
+
+  DogProfile.fromJson(Map<String, dynamic> json)
+      : age = json['age'],
+        breed = json['breed'],
+        dogName = json['dogName'] ?? '',
+        isDeleted = json['isDeleted'] ?? false,
+        imageUuid = json['imageUuid'] ?? '',
         creationTime = json['creationTime'] ?? 0;
 }
