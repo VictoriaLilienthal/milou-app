@@ -132,14 +132,11 @@ class _HomePageAppState extends State<HomePageApp> {
                   icon: svg,
                   onSelected: (s) => {
                     if (s == 'add_new')
-                      {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => const DogProfilePage()))
-                      }
+                      {sendToDogProfileCreatePage()}
                     else
                       {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => const DogProfilePage()))
+                        sendToDogProfileEditPage(
+                            dogs.where((element) => element.dogName == s).first)
                       }
                   },
                   itemBuilder: (BuildContext context) {
@@ -361,5 +358,27 @@ class _HomePageAppState extends State<HomePageApp> {
       )
     ]);
     return ret;
+  }
+
+  void sendToDogProfileCreatePage() async {
+    DogProfile? p = await Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => DogProfilePage(null)));
+
+    if (p != null) {
+      setState(() {
+        dogs.add(p);
+      });
+    }
+  }
+
+  void sendToDogProfileEditPage(DogProfile dog) async {
+    DogProfile? p = await Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => DogProfilePage(dog)));
+
+    if (p != null) {
+      setState(() {
+        dogs.add(p);
+      });
+    }
   }
 }
