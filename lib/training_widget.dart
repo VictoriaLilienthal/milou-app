@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import 'card_widget.dart';
 import 'chart.dart';
+import 'data/db.dart';
+import 'data/goal.dart';
 import 'data/skill.dart';
 
 const Duration halfSecond = Duration(milliseconds: 500);

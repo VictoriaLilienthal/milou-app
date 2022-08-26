@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:milou_app/data/skill.dart';
+
+import 'data/comment.dart';
 
 class NewCommentDialog extends StatefulWidget {
   final List<String> skillNames;

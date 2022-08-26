@@ -10,6 +10,10 @@ import 'package:milou_app/notes_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'card_widget.dart';
+import 'data/comment.dart';
+import 'data/db.dart';
+import 'data/dog_profile.dart';
+import 'data/goal.dart';
 import 'data/skill.dart';
 import 'dog_profile_page.dart';
 import 'new_command_dialog.dart';

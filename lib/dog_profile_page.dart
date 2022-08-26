@@ -6,11 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:milou_app/data/skill.dart';
 import 'package:milou_app/dog_breeds.dart';
 import 'package:uuid/uuid.dart';
 
 import 'configs.dart';
+import 'data/db.dart';
+import 'data/dog_profile.dart';
 
 class DogProfilePage extends StatefulWidget {
   DogProfile? dog;
@@ -125,7 +126,7 @@ class DogProfilePageState extends State<DogProfilePage> {
                 breed = newValue!;
               });
             },
-            items: dog_breeds
+            items: dogBreedsList
                 .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                 .toList(),
           ),

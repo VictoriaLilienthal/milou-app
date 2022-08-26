@@ -1,7 +1,6 @@
 import 'package:excel/excel.dart';
 import 'package:intl/intl.dart';
-
-import 'data/skill.dart';
+import 'package:milou_app/data/comment.dart';
 
 class Export {
   static void exportComments(List<Comment> comments) {

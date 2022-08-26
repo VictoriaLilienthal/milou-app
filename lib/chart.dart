@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
-import 'data/skill.dart';
+import 'data/logs.dart';
 
 class AxisTheme {
   static charts.RenderSpec<num> axisThemeNum() {

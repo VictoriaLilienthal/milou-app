@@ -1,4 +1,4 @@
-const List<String> dog_breeds = [
+const List<String> dogBreedsList = [
   "",
   "Afador",
   "Afaird",
