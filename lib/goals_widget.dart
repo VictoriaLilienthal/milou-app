@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:milou_app/skill.dart';
+import 'package:milou_app/data/skill.dart';
 
 class GoalsWidget extends StatefulWidget {
   final List<Goal> goals;

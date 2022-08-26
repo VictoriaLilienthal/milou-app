@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:milou_app/skill.dart';
+import 'package:milou_app/data/skill.dart';
 
 class NewGoalDialog extends StatefulWidget {
   final List<String> skillNames;

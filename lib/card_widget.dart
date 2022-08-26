@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:spring/spring.dart';
 
-import 'skill.dart';
+import 'data/skill.dart';
 
 const IconData paws = IconData(0xe4a1, fontFamily: 'MaterialIcons');
 

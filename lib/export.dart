@@ -1,7 +1,7 @@
 import 'package:excel/excel.dart';
 import 'package:intl/intl.dart';
 
-import 'skill.dart';
+import 'data/skill.dart';
 
 class Export {
   static void exportComments(List<Comment> comments) {

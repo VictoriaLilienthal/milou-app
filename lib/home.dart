@@ -10,12 +10,12 @@ import 'package:milou_app/notes_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'card_widget.dart';
+import 'data/skill.dart';
 import 'dog_profile_page.dart';
 import 'new_command_dialog.dart';
 import 'new_comment_dialog.dart';
 import 'new_goal_dialog.dart';
 import 'profile_page.dart';
-import 'skill.dart';
 import 'training_widget.dart';
 
 final prefs = SharedPreferences.getInstance();

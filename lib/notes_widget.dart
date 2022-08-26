@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:milou_app/export.dart';
 import 'package:spring/spring.dart';
 
-import 'skill.dart';
+import 'data/skill.dart';
 
 class NotesWidget extends StatefulWidget {
   final List<Comment> comments;
