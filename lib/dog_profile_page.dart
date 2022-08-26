@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:milou_app/data/skill.dart';
 import 'package:milou_app/dog_breeds.dart';
-import 'package:milou_app/skill.dart';
 import 'package:uuid/uuid.dart';
 
 import 'configs.dart';
@@ -23,7 +23,7 @@ class DogProfilePage extends StatefulWidget {
 
 class DogProfilePageState extends State<DogProfilePage> {
   TextEditingController textFieldController = TextEditingController();
-  String breed = "Kooikerhondje";
+  String breed = "";
   String age = "";
   int birthday = -1;
   String userAvatarUrl = "";
@@ -35,11 +35,13 @@ class DogProfilePageState extends State<DogProfilePage> {
   void initState() {
     super.initState();
     d = widget.dog;
-    textFieldController.text = d!.dogName;
-    age = getBirthdayStr(DateTime.fromMillisecondsSinceEpoch(d!.age));
-    birthday = d!.age;
-    breed = d!.breed;
-    userAvatarUrl = d!.imageUuid;
+    if (d != null) {
+      textFieldController.text = d!.dogName;
+      age = getBirthdayStr(DateTime.fromMillisecondsSinceEpoch(d!.age));
+      birthday = d!.age;
+      breed = d!.breed;
+      userAvatarUrl = d!.imageUuid;
+    }
   }
 
   @override
@@ -101,7 +103,10 @@ class DogProfilePageState extends State<DogProfilePage> {
                           Future<DateTime?> f = showDatePicker(
                               context: context,
                               firstDate: DateTime(2000),
-                              initialDate: DateTime.now(),
+                              initialDate: birthday != -1
+                                  ? DateTime.fromMillisecondsSinceEpoch(
+                                      birthday)
+                                  : DateTime.now(),
                               lastDate: DateTime.now());
 
                           f.then((value) {
@@ -197,14 +202,14 @@ class DogProfilePageState extends State<DogProfilePage> {
     Duration d = DateTime.now().difference(value);
     int days = d.inDays;
     int years = 0;
-    if (days > 365) {
+    if (days >= 365) {
       years = (days ~/ 365);
       days %= 365;
     }
     int months = 0;
-    if (days > 30) {
-      months = (days ~/ 30);
-      days %= 30;
+    if (days >= 30) {
+      months = (days ~/ 30.417);
+      days = days - (months * 30.417).toInt();
     }
     if (years == 0 && months == 0) {
       return "${d.inDays} days";
