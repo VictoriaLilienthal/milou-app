@@ -17,10 +17,10 @@ class LandingApp extends StatefulWidget {
   const LandingApp({Key? key}) : super(key: key);
 
   @override
-  _LandingAppState createState() => _LandingAppState();
+  LandingAppState createState() => LandingAppState();
 }
 
-class _LandingAppState extends State<LandingApp> {
+class LandingAppState extends State<LandingApp> {
   @override
   void initState() {
     super.initState();

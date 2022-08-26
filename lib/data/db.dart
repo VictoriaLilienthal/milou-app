@@ -132,7 +132,7 @@ class DB {
     }
   }
 
-  Future addClick(String name) {
+  Future addClick(String name, int delta) {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     if (currentUser != null) {
@@ -145,8 +145,8 @@ class DB {
 
       return FirebaseFirestore.instance.runTransaction((transaction) async {
         transaction.update(skillDoc, {
-          'cnt': FieldValue.increment(1),
-          'todayCnt': FieldValue.increment(1),
+          'cnt': FieldValue.increment(delta),
+          'todayCnt': FieldValue.increment(delta),
           'lastActivity': DateTime.now().millisecondsSinceEpoch
         });
         transaction.update(skillLogsDoc, {

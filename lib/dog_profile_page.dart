@@ -119,17 +119,25 @@ class DogProfilePageState extends State<DogProfilePage> {
                         },
                         icon: const Icon(Icons.calendar_month))
                   ])),
-          DropdownButton<String>(
-            value: breed,
-            onChanged: (String? newValue) {
-              setState(() {
-                breed = newValue!;
-              });
-            },
-            items: dogBreedsList
-                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                .toList(),
-          ),
+          SizedBox(
+              width: 250,
+              child: Autocomplete<String>(
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  if (textEditingValue.text == '') {
+                    return const Iterable<String>.empty();
+                  }
+                  return dogBreedsList.where((String option) {
+                    return option
+                        .toLowerCase()
+                        .startsWith(textEditingValue.text.toLowerCase());
+                  }).toList();
+                },
+                initialValue: TextEditingValue(text: breed),
+                onSelected: (String selection) {
+                  debugPrint('You just selected $selection');
+                  breed = selection;
+                },
+              )),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,

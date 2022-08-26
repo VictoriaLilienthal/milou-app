@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:milou_app/configs.dart';
 import 'package:milou_app/goals_widget.dart';
 import 'package:milou_app/notes_widget.dart';
@@ -23,8 +24,6 @@ import 'profile_page.dart';
 import 'training_widget.dart';
 
 final prefs = SharedPreferences.getInstance();
-const IconData pets = IconData(0xe4a1, fontFamily: 'MaterialIcons');
-const IconData dogs = IconData(0xf149, fontFamily: 'MaterialIcons');
 
 const Duration secondDuration = Duration(milliseconds: 1000);
 const Duration halfSecond = Duration(milliseconds: 500);
@@ -345,7 +344,7 @@ class _HomePageAppState extends State<HomePageApp> {
       return PopupMenuItem<String>(
         value: d.dogName,
         child: ListTile(
-          leading: const Icon(paws),
+          leading: const Icon(LineAwesomeIcons.paw),
           title: Text(d.dogName),
         ),
       );

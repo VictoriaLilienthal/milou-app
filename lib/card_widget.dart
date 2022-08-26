@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:spring/spring.dart';
 
+import 'data/db.dart';
+import 'data/goal.dart';
 import 'data/skill.dart';
 
 const IconData paws = IconData(0xe4a1, fontFamily: 'MaterialIcons');
@@ -42,85 +45,86 @@ class CardWidget extends StatefulWidget {
 class _CardWidgetState extends State<CardWidget> {
   bool isBig = false;
 
-  @override
-  Widget build(BuildContext context) {
+  Widget getLeadingIcon() {
     Skill state = widget.state;
-
-    Widget getLeadingIcon() {
-      if (state.mastered) {
-        return Spring.bubbleButton(
-            child: IconButton(
-                icon: const Icon(
-                  Icons.star,
-                  size: 24,
-                  color: Colors.yellow,
-                ),
-                onPressed: () => {widget.onUnmastered()}));
-      } else if (widget.goal == null) {
-        return Spring.bubbleButton(
-            child: IconButton(
-          icon: const Icon(
-            paws,
-            size: 24,
-            color: Colors.green,
-          ),
-          onPressed: () {},
-        ));
-      } else {
-        int sign = (widget.goal!.target - state.todayCnt).sign;
-        switch (sign) {
-          case 0:
-            {
-              return Spring.scale(
-                animDuration: const Duration(milliseconds: 200),
-                start: 0.1,
-                end: 1,
-                child: const Icon(
-                  Icons.check,
-                  size: 24,
-                  color: Colors.yellow,
-                ),
-              );
-            }
-          case 1:
-            {
-              return Spring.bubbleButton(
-                  child: CircularPercentIndicator(
-                radius: 12,
-                lineWidth: 3.0,
-                percent: state.todayCnt / widget.goal!.target > 1
-                    ? 1
-                    : state.todayCnt / widget.goal!.target,
-                center: Text(
-                  state.todayCnt > widget.goal!.target
-                      ? "0"
-                      : "${widget.goal!.target - state.todayCnt}",
-                  style: const TextStyle(fontSize: 10),
-                ),
-                progressColor: Colors.green,
-              ));
-            }
-          case -1:
-            {
-              return Spring.bubbleButton(
-                  child: const Icon(
+    if (state.mastered) {
+      return Spring.bubbleButton(
+          child: IconButton(
+              icon: const Icon(
+                Icons.star,
+                size: 24,
+                color: Colors.yellow,
+              ),
+              onPressed: () => {widget.onUnmastered()}));
+    } else if (widget.goal == null) {
+      return Spring.bubbleButton(
+          child: IconButton(
+        icon: const Icon(
+          paws,
+          size: 24,
+          color: Colors.green,
+        ),
+        onPressed: () {},
+      ));
+    } else {
+      int sign = (widget.goal!.target - state.todayCnt).sign;
+      switch (sign) {
+        case 0:
+          {
+            return Spring.scale(
+              animDuration: const Duration(milliseconds: 200),
+              start: 0.1,
+              end: 1,
+              child: const Icon(
                 Icons.check,
                 size: 24,
                 color: Colors.yellow,
-              ));
-            }
-        }
-        return Spring.bubbleButton(
-            child: IconButton(
-          icon: const Icon(
-            paws,
-            size: 24,
-            color: Colors.green,
-          ),
-          onPressed: () {},
-        ));
+              ),
+            );
+          }
+        case 1:
+          {
+            return Spring.bubbleButton(
+                child: CircularPercentIndicator(
+              radius: 12,
+              lineWidth: 3.0,
+              percent: state.todayCnt / widget.goal!.target > 1
+                  ? 1
+                  : state.todayCnt / widget.goal!.target,
+              center: Text(
+                state.todayCnt > widget.goal!.target
+                    ? "0"
+                    : "${widget.goal!.target - state.todayCnt}",
+                style: const TextStyle(fontSize: 10),
+              ),
+              progressColor: Colors.green,
+            ));
+          }
+        case -1:
+          {
+            return Spring.bubbleButton(
+                child: const Icon(
+              Icons.check,
+              size: 24,
+              color: Colors.yellow,
+            ));
+          }
       }
+      return Spring.bubbleButton(
+          child: IconButton(
+        icon: const Icon(
+          paws,
+          size: 24,
+          color: Colors.green,
+        ),
+        onPressed: () {},
+      ));
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Skill state = widget.state;
 
     List<Widget> kids = [
       Padding(
@@ -139,6 +143,37 @@ class _CardWidgetState extends State<CardWidget> {
                         "  ${state.name}",
                         style: const TextStyle(fontSize: 24),
                       ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      IconButton(
+                          iconSize: 48,
+                          color: Colors.red,
+                          onPressed: () => {
+                                if (state.todayCnt > 0 && state.cnt > 0)
+                                  setState(() {
+                                    state.cnt -= 1;
+                                    state.todayCnt -= 1;
+                                    state.lastActivity =
+                                        DateTime.now().millisecondsSinceEpoch;
+                                    DB().addClick(state.name, -1);
+                                  })
+                              },
+                          icon: const Icon(LineAwesomeIcons.minus_circle)),
+                      IconButton(
+                          iconSize: 48,
+                          color: Colors.green,
+                          onPressed: () => {
+                                setState(() {
+                                  state.cnt += 1;
+                                  state.todayCnt += 1;
+                                  state.lastActivity =
+                                      DateTime.now().millisecondsSinceEpoch;
+                                  DB().addClick(state.name, 1);
+                                })
+                              },
+                          icon: const Icon(LineAwesomeIcons.plus_circle)),
                     ],
                   ),
                   IconButton(
@@ -250,18 +285,9 @@ class _CardWidgetState extends State<CardWidget> {
         }
       },
       child: Card(
-          child: InkWell(
-              onTap: () {
-                setState(() {
-                  state.cnt += 1;
-                  state.todayCnt += 1;
-                  state.lastActivity = DateTime.now().millisecondsSinceEpoch;
-                  DB().addClick(state.name);
-                });
-              },
-              child: Column(
-                children: kids,
-              ))),
+          child: Column(
+        children: kids,
+      )),
     );
   }
 

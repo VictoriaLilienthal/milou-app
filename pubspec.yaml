@@ -40,6 +40,9 @@ dependencies:
   flutter_svg: any
   image_picker: ^0.8.5+3
   firebase_storage: ^10.3.6
+  line_awesome_flutter: ^1.1.0-nullsafety
+  ionicons: ^0.2.1
+  dropdown_search: ^4.0.0
 
 flutter:
   uses-material-design: true
