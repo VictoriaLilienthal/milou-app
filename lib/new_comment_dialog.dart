@@ -80,10 +80,12 @@ class NewCommentDialogState extends State<NewCommentDialog> {
             if (textFieldController.text.isNotEmpty) {
               Navigator.pop(
                   context,
-                  Comment(textFieldController.text,
-                      selectedTime.millisecondsSinceEpoch,
-                      skillName: skillName,
-                      creationTime: DateTime.now().millisecondsSinceEpoch));
+                  Comment(
+                    textFieldController.text,
+                    DateTime.now().millisecondsSinceEpoch,
+                    selectedTime.millisecondsSinceEpoch,
+                    skillName: skillName,
+                  ));
             }
           },
         ),

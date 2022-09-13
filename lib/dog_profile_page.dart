@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:age_calculator/age_calculator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -90,7 +91,16 @@ class DogProfilePageState extends State<DogProfilePage> {
               width: 250,
               child: TextField(
                 controller: textFieldController,
-                decoration: const InputDecoration(hintText: "Dog Name"),
+                onChanged: (v) => {
+                  setState(
+                    () {},
+                  )
+                },
+                decoration: InputDecoration(
+                    hintText: "Dog Name",
+                    errorStyle: const TextStyle(),
+                    errorText:
+                        textFieldController.text.isEmpty ? 'Required' : null),
               )),
           SizedBox(
               width: 250,
@@ -107,9 +117,10 @@ class DogProfilePageState extends State<DogProfilePage> {
                               initialDate: birthday != -1
                                   ? DateTime.fromMillisecondsSinceEpoch(
                                       birthday)
-                                  : DateTime.now(),
-                              lastDate: DateTime.now());
-
+                                  : DateTime.now()
+                                      .subtract(const Duration(days: 1)),
+                              lastDate: DateTime.now()
+                                  .subtract(const Duration(days: 1)));
                           f.then((value) {
                             setState(() {
                               birthday = value!.millisecondsSinceEpoch;
@@ -122,6 +133,22 @@ class DogProfilePageState extends State<DogProfilePage> {
           SizedBox(
               width: 250,
               child: Autocomplete<String>(
+                fieldViewBuilder: (BuildContext context,
+                    TextEditingController textEditingController,
+                    FocusNode focusNode,
+                    VoidCallback onFieldSubmitted) {
+                  return TextField(
+                    controller: textEditingController,
+                    focusNode: focusNode,
+                    onChanged: (v) => setState(() => {}),
+                    decoration: InputDecoration(
+                        hintText: "Breed",
+                        errorStyle: const TextStyle(),
+                        errorText: textEditingController.text.isEmpty
+                            ? 'Required'
+                            : null),
+                  );
+                },
                 optionsBuilder: (TextEditingValue textEditingValue) {
                   if (textEditingValue.text == '') {
                     return const Iterable<String>.empty();
@@ -134,7 +161,6 @@ class DogProfilePageState extends State<DogProfilePage> {
                 },
                 initialValue: TextEditingValue(text: breed),
                 onSelected: (String selection) {
-                  debugPrint('You just selected $selection');
                   breed = selection;
                 },
               )),
@@ -208,30 +234,24 @@ class DogProfilePageState extends State<DogProfilePage> {
   }
 
   String getBirthdayStr(DateTime value) {
-    Duration d = DateTime.now().difference(value);
-    int days = d.inDays;
-    int years = 0;
-    if (days >= 365) {
-      years = (days ~/ 365);
-      days %= 365;
+    DateDuration duration;
+    duration = AgeCalculator.age(value);
+    int years = duration.years;
+    int months = duration.months;
+    int days = duration.days;
+
+    String ret = "";
+    if (years > 0) {
+      ret += "$years years";
     }
-    int months = 0;
-    if (days >= 30) {
-      months = (days ~/ 30.417);
-      days = days - (months * 30.417).toInt();
+    if (months > 0) {
+      ret += " $months months";
     }
-    if (years == 0 && months == 0) {
-      return "${d.inDays} days";
-    } else if (years == 0 && months > 0 && days > 0) {
-      return "$months months $days days";
-    } else if (years == 0 && months > 0) {
-      return "$months months";
-    } else if (years > 0 && months > 0) {
-      return "$years years $months months";
-    } else if (years > 0 && months == 0) {
-      return "$years years";
+
+    if (days > 0) {
+      ret += " $days days";
     }
-    return "$years years $months months $days days";
+    return ret;
   }
 
   Future<String> upload(XFile? value) async {
@@ -268,7 +288,13 @@ class DogProfilePageState extends State<DogProfilePage> {
   }
 
   void showSnackBar(String e) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(
+          e,
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 1)));
   }
 
   void saveDog() async {
@@ -288,7 +314,7 @@ class DogProfilePageState extends State<DogProfilePage> {
     DogProfile dogProfile;
     if (d == null) {
       dogProfile = DogProfile(breed, birthday, textFieldController.text, "",
-          creationTime: DateTime.now().millisecondsSinceEpoch);
+          DateTime.now().millisecondsSinceEpoch);
     } else {
       dogProfile = d!;
       dogProfile.age = birthday;

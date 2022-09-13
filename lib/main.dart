@@ -40,6 +40,7 @@ class LandingAppState extends State<LandingApp> {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         darkTheme: ThemeData(
+            fontFamily: 'Roboto',
             brightness: Brightness.dark,
             appBarTheme: const AppBarTheme(
                 backgroundColor: Color(0xff004e54),

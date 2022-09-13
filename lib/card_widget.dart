@@ -1,11 +1,15 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:spring/spring.dart';
+import 'package:vibration/vibration.dart';
 
 import 'data/db.dart';
 import 'data/goal.dart';
+import 'data/logs.dart';
 import 'data/skill.dart';
 
 const IconData paws = IconData(0xe4a1, fontFamily: 'MaterialIcons');
@@ -44,6 +48,17 @@ class CardWidget extends StatefulWidget {
 
 class _CardWidgetState extends State<CardWidget> {
   bool isBig = false;
+  Logs logs = Logs();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.goal != null) {
+      DB()
+          .getLogsForSkill(widget.state.name)
+          .then((value) => setState(() => {logs = value}));
+    }
+  }
 
   Widget getLeadingIcon() {
     Skill state = widget.state;
@@ -58,16 +73,14 @@ class _CardWidgetState extends State<CardWidget> {
               onPressed: () => {widget.onUnmastered()}));
     } else if (widget.goal == null) {
       return Spring.bubbleButton(
-          child: IconButton(
-        icon: const Icon(
+        child: const Icon(
           paws,
           size: 24,
           color: Colors.green,
         ),
-        onPressed: () {},
-      ));
+      );
     } else {
-      int sign = (widget.goal!.target - state.todayCnt).sign;
+      int sign = getSign();
       switch (sign) {
         case 0:
           {
@@ -88,13 +101,9 @@ class _CardWidgetState extends State<CardWidget> {
                 child: CircularPercentIndicator(
               radius: 12,
               lineWidth: 3.0,
-              percent: state.todayCnt / widget.goal!.target > 1
-                  ? 1
-                  : state.todayCnt / widget.goal!.target,
+              percent: min(goalProgress(), 1),
               center: Text(
-                state.todayCnt > widget.goal!.target
-                    ? "0"
-                    : "${widget.goal!.target - state.todayCnt}",
+                "${max((widget.goal!.target - getCnt()), 0)}",
                 style: const TextStyle(fontSize: 10),
               ),
               progressColor: Colors.green,
@@ -128,39 +137,31 @@ class _CardWidgetState extends State<CardWidget> {
 
     List<Widget> kids = [
       Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Row(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Expanded(
+                  flex: 3,
+                  child: Row(
                     children: [
                       getLeadingIcon(),
-                      Text(
-                        "  ${state.name}",
-                        style: const TextStyle(fontSize: 24),
+                      Flexible(
+                        child: Text(
+                          "  ${state.name}",
+                          style: const TextStyle(fontSize: 24),
+                        ),
                       ),
                     ],
                   ),
-                  Row(
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      IconButton(
-                          iconSize: 48,
-                          color: Colors.red,
-                          onPressed: () => {
-                                if (state.todayCnt > 0 && state.cnt > 0)
-                                  setState(() {
-                                    state.cnt -= 1;
-                                    state.todayCnt -= 1;
-                                    state.lastActivity =
-                                        DateTime.now().millisecondsSinceEpoch;
-                                    DB().addClick(state.name, -1);
-                                  })
-                              },
-                          icon: const Icon(LineAwesomeIcons.minus_circle)),
                       IconButton(
                           iconSize: 48,
                           color: Colors.green,
@@ -171,21 +172,22 @@ class _CardWidgetState extends State<CardWidget> {
                                   state.lastActivity =
                                       DateTime.now().millisecondsSinceEpoch;
                                   DB().addClick(state.name, 1);
+                                  vibrateIfGoalComplete(state);
                                 })
                               },
                           icon: const Icon(LineAwesomeIcons.plus_circle)),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.bar_chart,
+                          size: 24,
+                          color: Colors.blue,
+                        ),
+                        onPressed: () => widget.onShowChart(),
+                      )
                     ],
                   ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.bar_chart,
-                      size: 24,
-                      color: Colors.blue,
-                    ),
-                    onPressed: () => widget.onShowChart(),
-                  )
-                ],
-              ),
+                ),
+              ],
             ),
             Row(
               children: [
@@ -201,7 +203,7 @@ class _CardWidgetState extends State<CardWidget> {
 
     if (widget.goal != null) {
       kids.add(LinearProgressIndicator(
-        value: state.todayCnt / widget.goal!.target,
+        value: goalProgress(),
       ));
     }
     return Dismissible(
@@ -302,5 +304,90 @@ class _CardWidgetState extends State<CardWidget> {
       }
       return "Last performed ${(DateFormat.yMMMd().format(lastDate))}";
     }
+  }
+
+  void vibrateIfGoalComplete(Skill state) async {
+    if (widget.goal!.target == getCnt()) {
+      Vibration.hasVibrator().then((value) {
+        if (value != null && value) {
+          Vibration.vibrate(duration: 200);
+        }
+      });
+    }
+  }
+
+  int getSign() {
+    return (widget.goal!.target - getCnt()).sign;
+  }
+
+  double goalProgress() {
+    return getCnt() / widget.goal!.target;
+  }
+
+  double weeklyGoalProgress() {
+    return getCntTowardsGoal() / widget.goal!.target;
+  }
+
+  int getCntTowardsGoal() {
+    if (widget.goal!.type == 0) {
+      return widget.state.todayCnt;
+    }
+
+    DateTime creationTime =
+        DateTime.fromMillisecondsSinceEpoch(widget.state.creationTime);
+
+    DateTime endTime = creationTime.add(const Duration(days: 7));
+
+    int cnt = logs.logs
+        .where((element) =>
+            creationTime.millisecondsSinceEpoch <= element &&
+            element <= endTime.millisecondsSinceEpoch)
+        .length;
+
+    return cnt;
+  }
+
+  int getCnt() {
+    DateTime creationTime =
+        DateTime.fromMillisecondsSinceEpoch(widget.goal!.creationTime);
+    DateTime now = DateTime.now();
+    print(now.difference(creationTime).inDays);
+
+    if (widget.goal != null) {
+      if (widget.goal!.isRecurring) {
+        if (widget.goal!.type == 0) {
+          return widget.state.todayCnt;
+        } else {
+          Duration d = now.difference(creationTime);
+          int i = 7 * ((d.inDays / 7).ceil());
+
+          DateTime startTime = now.subtract(Duration(days: i));
+          DateTime endTime = startTime.add(const Duration(days: 7));
+
+          return logs.logs
+              .where((element) =>
+                  startTime.millisecondsSinceEpoch <= element &&
+                  element <= endTime.millisecondsSinceEpoch)
+              .length;
+        }
+      } else {
+        if (widget.goal!.type == 0) {
+          if (now.difference(creationTime).inHours < 24) {
+            return widget.state.todayCnt;
+          }
+        } else {
+          if (now.difference(creationTime).inDays < 7) {
+            DateTime endTime = creationTime.add(const Duration(days: 7));
+            return logs.logs
+                .where((element) =>
+                    creationTime.millisecondsSinceEpoch <= element &&
+                    element <= endTime.millisecondsSinceEpoch)
+                .length;
+          }
+        }
+      }
+    }
+
+    return 0;
   }
 }

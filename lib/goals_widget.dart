@@ -76,40 +76,44 @@ class GoalsListItemWidgetState extends State<GoalsListItemWidget> {
             )),
         key: Key(g.name),
         child: Card(
-            child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Row(children: [
-            Expanded(
-              child: Row(children: [
-                Text(g.name),
-                Slider(
-                  value: g.target.toDouble(),
-                  max: 100,
-                  divisions: 100,
-                  label: g.target.toString(),
-                  onChanged: editable
-                      ? (v) => {
-                            setState(() => {g.target = v.toInt()})
-                          }
-                      : null,
-                ),
-                Text("${g.target.round()}")
-              ]),
-            ),
-            IconButton(
-                icon: Icon(
-                  editable ? Icons.save : Icons.edit,
-                  color: Colors.green,
-                ),
-                onPressed: () {
-                  if (editable) {
-                    DB().addNewGoal(g);
-                  }
-                  setState(() {
-                    editable = !editable;
-                  });
-                }),
-          ]),
-        )));
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(children: [
+              Expanded(
+                child: Row(children: [
+                  g.isRecurring
+                      ? const Icon(Icons.repeat)
+                      : const Icon(Icons.repeat_one),
+                  Text(g.name),
+                  Slider(
+                    value: g.target.toDouble(),
+                    max: 100,
+                    divisions: 100,
+                    label: g.target.toString(),
+                    onChanged: editable
+                        ? (v) => {
+                              setState(() => {g.target = v.toInt()})
+                            }
+                        : null,
+                  ),
+                  Text("${g.target.round()}")
+                ]),
+              ),
+              IconButton(
+                  icon: Icon(
+                    editable ? Icons.save : Icons.edit,
+                    color: Colors.green,
+                  ),
+                  onPressed: () {
+                    if (editable) {
+                      DB().addNewGoal(g);
+                    }
+                    setState(() {
+                      editable = !editable;
+                    });
+                  }),
+            ]),
+          ),
+        ));
   }
 }

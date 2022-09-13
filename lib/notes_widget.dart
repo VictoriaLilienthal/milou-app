@@ -34,6 +34,54 @@ class NotesWidgetState extends State<NotesWidget> {
     for (int i = 0; i < widget.comments.length; i++) {
       var comment = widget.comments[i];
       li.add(Dismissible(
+        direction: DismissDirection.endToStart,
+        confirmDismiss: (direction) async {
+          return showDialog(
+              context: context,
+              builder: ((context) {
+                return AlertDialog(
+                  title: const Text('Delete?'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const <Widget>[Text('Confirm Delete')],
+                  ),
+                  actions: <Widget>[
+                    IconButton(
+                      icon: const Icon(Icons.check),
+                      color: Colors.green,
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.cancel),
+                      color: Colors.red,
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                    ),
+                  ],
+                );
+              })).then((value) {
+            if (value) {
+              return value;
+            }
+            return null;
+          });
+        },
+        background: Container(
+            padding: const EdgeInsets.only(right: 20),
+            alignment: Alignment.centerRight,
+            color: Colors.redAccent,
+            child: const AnimatedSize(
+              duration: Duration(milliseconds: 100),
+              child: Icon(
+                Icons.delete,
+                color: Colors.white,
+                size: 30,
+              ),
+            )),
         key: Key("c_$i"),
         child: Card(
             child: Padding(
@@ -45,7 +93,7 @@ class NotesWidgetState extends State<NotesWidget> {
                     comment.skillName.isNotEmpty
                         ? Text("  ${comment.skillName}  ")
                         : const Text("  "),
-                    Text(comment.comment)
+                    Flexible(child: Text(comment.comment))
                   ],
                 ))),
       ));

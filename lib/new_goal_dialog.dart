@@ -14,7 +14,8 @@ class NewGoalDialog extends StatefulWidget {
 class NewGoalDialogState extends State<NewGoalDialog> {
   String goalName = "";
   double _currentSliderValue = 60;
-  String goalType = "0";
+  int goalType = 0;
+  bool recurring = false;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +39,7 @@ class NewGoalDialogState extends State<NewGoalDialog> {
           ),
           Row(
             children: [
+              const Text("Value"),
               Slider(
                 value: _currentSliderValue,
                 max: 100,
@@ -52,16 +54,25 @@ class NewGoalDialogState extends State<NewGoalDialog> {
               Text("  ${_currentSliderValue.round()}")
             ],
           ),
-          DropdownButton<String>(
+          SwitchListTile(
+            title: const Text('Recurring'),
+            value: recurring,
+            onChanged: (bool value) {
+              setState(() {
+                recurring = value;
+              });
+            },
+          ),
+          DropdownButton<int>(
             value: goalType,
-            onChanged: (String? newValue) {
+            onChanged: (int? newValue) {
               setState(() {
                 goalType = newValue!;
               });
             },
             items: const [
-              DropdownMenuItem(value: "0", child: Text("Daily")),
-              DropdownMenuItem(value: "1", child: Text("Weekly"))
+              DropdownMenuItem(value: 0, child: Text("Daily")),
+              DropdownMenuItem(value: 1, child: Text("Weekly"))
             ],
           ),
         ],
@@ -71,7 +82,10 @@ class NewGoalDialogState extends State<NewGoalDialog> {
           icon: const Icon(Icons.check),
           color: Colors.green,
           onPressed: () {
-            Navigator.pop(context, Goal(goalName, _currentSliderValue.toInt()));
+            Navigator.pop(
+                context,
+                Goal(goalName, _currentSliderValue.toInt(), goalType, recurring,
+                    DateTime.now().millisecondsSinceEpoch, false));
           },
         ),
         IconButton(

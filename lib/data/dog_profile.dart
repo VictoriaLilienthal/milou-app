@@ -6,8 +6,9 @@ class DogProfile {
   int creationTime;
   String imageUuid;
 
-  DogProfile(this.breed, this.age, this.dogName, this.imageUuid,
-      {this.creationTime = 0, this.isDeleted = false});
+  DogProfile(
+      this.breed, this.age, this.dogName, this.imageUuid, this.creationTime,
+      {this.isDeleted = false});
 
   Map<String, dynamic> toJson() => {
         'age': age,

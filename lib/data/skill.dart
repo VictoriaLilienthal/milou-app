@@ -8,14 +8,13 @@ class Skill {
   int creationTime;
   bool isDeleted;
 
-  Skill(this.name,
-      [this.cnt = 0,
+  Skill(this.name, this.creationTime,
+      {this.cnt = 0,
       this.mastered = false,
       this.todayCnt = 0,
       this.lastActivity = 0,
       this.order = 0,
-      this.creationTime = 0,
-      this.isDeleted = false]);
+      this.isDeleted = false});
 
   Map<String, dynamic> toJson() => {
         'name': name,

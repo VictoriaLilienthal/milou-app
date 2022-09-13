@@ -7,9 +7,9 @@ class Comment {
 
   Comment(
     this.comment,
+    this.creationTime,
     this.time, {
     this.skillName = "",
-    this.creationTime = 0,
     this.isDeleted = false,
   });
 

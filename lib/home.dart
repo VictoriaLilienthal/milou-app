@@ -238,7 +238,7 @@ class _HomePageAppState extends State<HomePageApp> {
 
     str.then((value) {
       if (value != null && isValidSkillName(value)) {
-        Skill s = Skill(value);
+        Skill s = Skill(value, DateTime.now().millisecondsSinceEpoch);
         s.creationTime = DateTime.now().millisecondsSinceEpoch;
         databaseInstance.addNewSkill(s).then((value) {
           setState(

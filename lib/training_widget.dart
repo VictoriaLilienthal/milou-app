@@ -22,17 +22,42 @@ class TrainingWidget extends StatefulWidget {
 
 class TrainingWidgetState extends State<TrainingWidget> {
   DB databaseInstance = DB();
+  bool isList = true;
 
   @override
   Widget build(BuildContext context) {
     List<Widget> list = <Widget>[];
 
+    List<Widget> buttons = <Widget>[];
+
     List<Skill> rowStates = widget.rowStates;
+    for (var i = 0; i < rowStates.length; i += 3) {
+      List<Widget> c = [];
+      if (i < rowStates.length) {
+        c.add(OutlinedButton(
+          onPressed: () {
+            debugPrint('Received click');
+          },
+          child: Text(rowStates[i].name),
+        ));
+      }
+      if (i + 1 < rowStates.length) {
+        c.add(IconButton(onPressed: () => {}, icon: const Icon(Icons.add)));
+      }
+      if (i + 2 < rowStates.length) {
+        c.add(IconButton(onPressed: () => {}, icon: const Icon(Icons.add)));
+      }
+      buttons.add(Row(
+        children: c,
+      ));
+    }
+
     for (var i = 0; i < rowStates.length; i++) {
       Skill state = rowStates[i];
 
-      Iterable<Goal> goals = widget.goals.where(
-          (element) => element.name.toLowerCase() == state.name.toLowerCase());
+      Iterable<Goal> goals = widget.goals.where((element) =>
+          element.isActive() &&
+          (element.name.toLowerCase() == state.name.toLowerCase()));
 
       list.add(CardWidget(
         state,
@@ -83,28 +108,82 @@ class TrainingWidgetState extends State<TrainingWidget> {
       ));
     }
 
-    return ScrollConfiguration(
-        behavior: ScrollConfiguration.of(context).copyWith(
-          dragDevices: {
-            PointerDeviceKind.touch,
-            PointerDeviceKind.mouse,
-          },
-        ),
-        child: ReorderableListView(
-            physics: const BouncingScrollPhysics(),
-            scrollDirection: Axis.vertical,
-            shrinkWrap: true,
-            onReorder: (int oldIndex, int newIndex) {
-              setState(() {
-                if (oldIndex < newIndex) {
-                  newIndex -= 1;
-                }
-                final Skill element = rowStates.removeAt(oldIndex);
-                rowStates.insert(newIndex, element);
-
-                databaseInstance.syncOrder(rowStates);
-              });
+    if (isList) {
+      return ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(
+            dragDevices: {
+              PointerDeviceKind.touch,
+              PointerDeviceKind.mouse,
             },
-            children: list));
+          ),
+          child: Column(
+            children: [
+              // Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              //   TextButton(
+              //     onPressed: () {
+              //       setState(() {
+              //         isList = !isList;
+              //       });
+              //     },
+              //     child: Text(isList ? 'List' : 'Action'),
+              //   )
+              // ]),
+              ReorderableListView(
+                  physics: const BouncingScrollPhysics(),
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  onReorder: (int oldIndex, int newIndex) {
+                    setState(() {
+                      if (oldIndex < newIndex) {
+                        newIndex -= 1;
+                      }
+                      final Skill element = rowStates.removeAt(oldIndex);
+                      rowStates.insert(newIndex, element);
+                      databaseInstance.syncOrder(rowStates);
+                    });
+                  },
+                  children: list)
+            ],
+          ));
+    } else {
+      return GridView.count(
+        primary: false,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        crossAxisCount: 3,
+        children: <Widget>[
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.teal[100],
+            child: const Text("He'd have you all unravel at the"),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.teal[200],
+            child: const Text('Heed not the rabble'),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.teal[300],
+            child: const Text('Sound of screams but the'),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.teal[400],
+            child: const Text('Who scream'),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.teal[500],
+            child: const Text('Revolution is coming...'),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.teal[600],
+            child: const Text('Revolution, they...'),
+          ),
+        ],
+      );
+    }
   }
 }

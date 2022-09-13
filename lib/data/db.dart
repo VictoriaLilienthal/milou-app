@@ -149,9 +149,12 @@ class DB {
           'todayCnt': FieldValue.increment(delta),
           'lastActivity': DateTime.now().millisecondsSinceEpoch
         });
-        transaction.update(skillLogsDoc, {
-          'logs': FieldValue.arrayUnion([DateTime.now().millisecondsSinceEpoch])
-        });
+        if (delta > 0) {
+          transaction.update(skillLogsDoc, {
+            'logs':
+                FieldValue.arrayUnion([DateTime.now().millisecondsSinceEpoch])
+          });
+        }
       });
     } else {
       throw Exception("User logged out");
