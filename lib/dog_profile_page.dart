@@ -108,7 +108,12 @@ class DogProfilePageState extends State<DogProfilePage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(age),
+                    Text(
+                      age.isEmpty ? "Required Birthday or Gotcha Day" : age,
+                      style: age.isEmpty
+                          ? const TextStyle(color: Colors.red)
+                          : null,
+                    ),
                     IconButton(
                         onPressed: () {
                           Future<DateTime?> f = showDatePicker(
